@@ -1,8 +1,8 @@
-const db = require('../config/database');
+import { query } from '../config/database';
 
 const User = {
   create: (userData, callback) => {
-    db.query(
+    query(
       'INSERT INTO usuarios (nombre, email, contrasena) VALUES (?, ?, ?)',
       [userData.nombre, userData.email, userData.contrasena],
       (error, results) => {
@@ -12,7 +12,7 @@ const User = {
     );
   },
   findByEmail: (email, callback) => {
-    db.query(
+    query(
       'SELECT * FROM usuarios WHERE email = ?',
       [email],
       (error, results) => {
@@ -23,5 +23,5 @@ const User = {
   }
 };
 
-module.exports = User;
+export default User;
 
