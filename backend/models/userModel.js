@@ -5,18 +5,21 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const JWT_SECRET = process.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET;
 
-export const loginUser = async (email, password) => {
+export const loginUser = async (email, password, type) => {
     try {
         const [rows] = await pool.query('SELECT * FROM USUARIOS WHERE COR_USU = ?', [email]);        
         if (rows.length === 0) {
             return { success: false, message: 'User not found' };
         }
         
+        console.log("Email recibido:", email);
+        console.log("Tipo recibido:", type);
         const user = rows[0];
         const passwordMatch = await bcrypt.compare(password, user.CON_USU);
-        
+        console.log("¿Contraseña coincide?", passwordMatch);
+
         if (!passwordMatch) {
             return { success: false, message: 'Incorrect password' };
         }
@@ -26,10 +29,10 @@ export const loginUser = async (email, password) => {
             JWT_SECRET,
             { expiresIn: '1h' }
         );
-
         console.log("Generated token:", token);
+
         
-        return { 
+        return {
           success: true, 
           message: 'Login successful', 
           token, 

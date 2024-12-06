@@ -25,7 +25,7 @@ const Dashboard = () => {
   return (
     <div className="container mt-5">
       <h2>Dashboard</h2>
-      <p>Bienvenido, {user.nombre}!</p>
+      <p>Bienvenido tecnico</p>
       <p>Email: {user.email}</p>
       <button onClick={handleLogout} className="btn btn-danger">Cerrar Sesión</button>
     </div>

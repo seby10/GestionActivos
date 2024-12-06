@@ -2,14 +2,14 @@
 import { loginUser, getUserFromToken } from '../models/userModel.js';
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, type } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password || !type) {
         return res.status(400).json({ success: false, message: 'Email and password are required' });
     }
 
     try {
-        const response = await loginUser (email, password);
+        const response = await loginUser (email, password, type);
         
         if (response.success) {
             return res.status(200).json({ success: true, token: response.token, user: response.user });
