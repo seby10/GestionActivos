@@ -1,48 +1,49 @@
-const User = require('../models/userModel').default;
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'tu_secreto_jwt_super_seguro';
+import { loginUser, getUserFromToken } from '../models/userModel.js';
 
-exports.register = async (req, res) => {
-  try {
-    const { nombre, email, contrasena } = req.body;
-    const hashedPassword = await bcrypt.hash(contrasena, 10);
+export const login = async (req, res) => {
+    const { email, password, type } = req.body;
 
-    User.create({ nombre, email, contrasena: hashedPassword }, (err, result) => {
-      if (err) {
-        return res.status(500).json({ message: "Error al registrar usuario" });
-      }
-      res.status(201).json({ message: "Usuario registrado exitosamente" });
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error del servidor" });
-  }
+    if (!email || !password || !type) {
+        return res.status(400).json({ success: false, message: 'Email and password are required' });
+    }
+
+    try {
+        const response = await loginUser (email, password, type);
+        
+        if (response.success) {
+            return res.status(200).json({ success: true, token: response.token, user: response.user });
+        } else {
+            return res.status(401).json({ success: false, message: response.message });
+        }
+    } catch (error) {
+        console.error('Error in user login:', error);
+        return res.status(500).json({ 
+            success: false, 
+            message: 'Login failed. Please try again later.' 
+        });
+    }
 };
 
-exports.login = async (req, res) => {
-  try {
-    const { email, contrasena } = req.body;
+export const getUserDetails = async (req, res) => {
+    
+    const token = req.headers.authorization?.split(' ')[1]; // Extract the token from the Authorization header
+    console.log(token);
 
-    User.findByEmail(email, async (err, user) => {
-      if (err || !user) {
-        return res.status(401).json({ message: "Credenciales inválidas" });
-      }
+    if (!token) {
+        return res.status(401).json({ success: false, message: 'Token not provided' });
+    }
 
-      const isMatch = await bcrypt.compare(contrasena, user.contrasena);
-      if (!isMatch) {
-        return res.status(401).json({ message: "Credenciales inválidas" });
-      }
+    try {
+        const response = await getUserFromToken(token);
 
-      const token = jwt.sign(
-        { id: user.id, email: user.email, nombre: user.nombre },
-        JWT_SECRET,
-        { expiresIn: '1h' }
-      );
-      res.json({ token, user: { id: user.id, email: user.email, nombre: user.nombre } });
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Error del servidor" });
-  }
+        if (response.success) {
+            return res.status(200).json({ success: true, user: response.user });
+        } else {
+            return res.status(401).json({ success: false, message: response.message });
+        }
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        return res.status(500).json({ success: false, message: 'Failed to retrieve user details' });
+    }
 };
-
