@@ -36,7 +36,7 @@ export const loginUser = async (email, password, type) => {
           success: true, 
           message: 'Login successful', 
           token, 
-          user: { id: user.ID_USU, email: user.COR_USU, name: user.NOM_USU, tipo: user.TIP_USU } 
+          user: { id: user.ID_USU, email: user.COR_USU, name: user.NOM_USU, type: user.TIP_USU } 
       };
     } catch (error) {
         console.error("Login error:", error);
