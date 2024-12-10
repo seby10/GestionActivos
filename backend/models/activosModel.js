@@ -1,11 +1,13 @@
 import { pool } from "../config/database.js";
 
 export const getAllActivos = async () => {
-    try {
-      const [rows] = await pool.query(`
+  try {
+    const [rows] = await pool.query(`
         SELECT 
           a.ID_ACT, 
           a.NOM_ACT, 
+          a.MAR_ACT, 
+          a.MOD_ACT, 
           a.CAT_ACT, 
           a.UBI_ACT, 
           a.EST_ACT, 
@@ -13,13 +15,13 @@ export const getAllActivos = async () => {
         FROM ACTIVOS a 
         LEFT JOIN PROVEEDORES p ON a.ID_PRO = p.ID_PRO
       `);
-  
-      return rows; 
-    } catch (error) {
-      console.error("Error fetching activos:", error);
-      throw error; 
-    }
-  };
+
+    return rows;
+  } catch (error) {
+    console.error("Error fetching activos:", error);
+    throw error;
+  }
+};
 
 export const getActivoByIdFromDB = async (id) => {
   try {
@@ -52,13 +54,15 @@ export const addActivo = async (activo) => {
 
 export const updateActivo = async (id, activoData) => {
   try {
-    const { NOM_ACT, CAT_ACT, UBI_ACT, EST_ACT } = activoData;
+    const { NOM_ACT, MAR_ACT, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT } = activoData;
     const query = `
         UPDATE ACTIVOS
-        SET NOM_ACT = ?, CAT_ACT = ?, UBI_ACT = ?, EST_ACT = ?
+        SET NOM_ACT = ?,MAR_ACT=?,MOD_ACT=?, CAT_ACT = ?, UBI_ACT = ?, EST_ACT = ?
         WHERE ID_ACT = ?`;
     const [result] = await pool.query(query, [
       NOM_ACT,
+      MAR_ACT,
+      MOD_ACT,
       CAT_ACT,
       UBI_ACT,
       EST_ACT,
