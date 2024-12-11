@@ -5,6 +5,7 @@ import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import ExcelComponent from './ExcelComponent';
 
+
 const ActivosTable = () => {
   const [activos, setActivos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
@@ -51,7 +52,6 @@ const ActivosTable = () => {
     };
     fetchData();
   };
-
   // Filtrar activos por búsqueda y categoría
   const filteredActivos = activos
     .filter((activo) =>
@@ -265,104 +265,101 @@ const ActivosTable = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <form>
-                    <div className="mb-3">
-                      <label htmlFor="nombre" className="form-label">
-                        Nombre
-                      </label>
-                      <input
-                        type="text"
-                        id="nombre"
-                        name="NOM_ACT"
-                        className="form-control"
-                        value={updatedActivo.NOM_ACT}
-                        onChange={handleUpdateChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="marca" className="form-label">
-                        Marca
-                      </label>
-                      <input
-                        type="text"
-                        id="marca"
-                        name="MAR_ACT"
-                        className="form-control"
-                        value={updatedActivo.MAR_ACT}
-                        onChange={handleUpdateChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="modelo" className="form-label">
-                        Modelo
-                      </label>
-                      <input
-                        type="text"
-                        id="modelo"
-                        name="MOD_ACT"
-                        className="form-control"
-                        value={updatedActivo.MOD_ACT}
-                        onChange={handleUpdateChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="categoria" className="form-label">
-                        Categoría
-                      </label>
-                      <input
-                        type="text"
-                        id="categoria"
-                        name="CAT_ACT"
-                        className="form-control"
-                        value={updatedActivo.CAT_ACT}
-                        onChange={handleUpdateChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="ubicacion" className="form-label">
-                        Ubicación
-                      </label>
-                      <input
-                        type="text"
-                        id="ubicacion"
-                        name="UBI_ACT"
-                        className="form-control"
-                        value={updatedActivo.UBI_ACT}
-                        onChange={handleUpdateChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="estado" className="form-label">
-                        Estado
-                      </label>
-                      <input
-                        type="text"
-                        id="estado"
-                        name="EST_ACT"
-                        className="form-control"
-                        value={updatedActivo.EST_ACT}
-                        onChange={handleUpdateChange}
-                      />
-                    </div>
-                    <div className="mb-3">
-                      <label htmlFor="proveedor" className="form-label">
-                        Proveedor
-                      </label>
-                      <select
-                        name="ID_PROV"
-                        className="form-select"
-                        value={updatedActivo.ID_PROV || ""}
-                        onChange={handleUpdateChange}
-                      >
-                        <option value="">Selecciona un proveedor</option>
-                        {proveedores.map((proveedor) => (
-                          <option key={proveedor.ID_PROV} value={proveedor.ID_PROV}>
-                            {proveedor.NOM_PROV}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </form>
+
+                  <div className="mb-3">
+                    <label className="form-label">Nombre</label>
+                    <input
+                      type="text"
+                      name="NOM_ACT"
+                      className="form-control"
+                      value={updatedActivo.NOM_ACT || ""}
+                      onChange={handleUpdateChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Marca</label>
+                    <input
+                      type="text"
+                      name="MAR_ACT"
+                      className="form-control"
+                      value={updatedActivo.MAR_ACT || ""}
+                      onChange={handleUpdateChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Modelo</label>
+                    <input
+                      type="text"
+                      name="MOD_ACT"
+                      className="form-control"
+                      value={updatedActivo.MOD_ACT || ""}
+                      onChange={handleUpdateChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Categoría</label>
+                    <select
+                      name="CAT_ACT"
+                      className="form-select"
+                      value={updatedActivo.CAT_ACT || ""}
+                      onChange={handleUpdateChange}
+                    >
+                      <option value="informático">Informático</option>
+                      <option value="mueble">Mueble</option>
+                      <option value="electrónico">Electrónico</option>
+                      <option value="vehículo">Vehículo</option>
+                      <option value="mobiliario de oficina">
+                        Mobiliario de Oficina
+                      </option>
+                      <option value="herramienta">Herramienta</option>
+                      <option value="equipamiento médico">
+                        Equipamiento Médico
+                      </option>
+                      <option value="equipos de comunicación">
+                        Equipos de Comunicación
+                      </option>
+                      <option value="instrumento de laboratorio">
+                        Instrumento de Laboratorio
+                      </option>
+                      <option value="equipo de producción">
+                        Equipo de Producción
+                      </option>
+                      <option value="equipo de seguridad">
+                        Equipo de Seguridad
+                      </option>
+                      <option value="otros">Otros</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Ubicación</label>
+                    <select
+                      name="UBI_ACT"
+                      className="form-select"
+                      value={updatedActivo.UBI_ACT || ""}
+                      onChange={handleUpdateChange}
+                    >
+                      <option value="Laboratorio A">Laboratorio A</option>
+                      <option value="Laboratorio B">Laboratorio B</option>
+                      <option value="Laboratorio C">Laboratorio C</option>
+                      <option value="Laboratorio D">Laboratorio D</option>
+                      <option value="Aula 1">Aula 1</option>
+                      <option value="Aula 2">Aula 2</option>
+                      <option value="Aula 3">Aula 3</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Estado</label>
+                    <select
+                      name="EST_ACT"
+                      className="form-select"
+                      value={updatedActivo.EST_ACT || ""}
+                      onChange={handleUpdateChange}
+                    >
+                      <option value="disponible">Disponible</option>
+                      <option value="mantenimiento">Mantenimiento</option>
+                      <option value="asignado">Asignado</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="modal-footer">
                   <button
@@ -380,14 +377,16 @@ const ActivosTable = () => {
             </div>
           </div>
         )}
-        {/* Navegación por páginas */}
-        <div className="d-flex justify-content-between">
+        {/* Paginación */}
+        <div className="d-flex justify-content-center mt-3">
+
           <button
             onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
             className="btn btn-outline-secondary"
             disabled={currentPage === 1}
           >
-            <FontAwesomeIcon icon={faArrowLeft} />
+            <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+
           </button>
           <span>Página {currentPage} de {totalPages}</span>
           <button
@@ -395,7 +394,8 @@ const ActivosTable = () => {
             className="btn btn-outline-secondary"
             disabled={currentPage === totalPages}
           >
-            <FontAwesomeIcon icon={faArrowRight} />
+            <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
+
           </button>
         </div>
       </div>
