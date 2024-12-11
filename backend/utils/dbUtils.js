@@ -28,6 +28,7 @@ const activoTableQuery = `CREATE TABLE IF NOT EXISTS ACTIVOS (
     UBI_ACT ENUM('Laboratorio A', 'Laboratorio B', 'Laboratorio C', 'Laboratorio D', 'Aula 1', 'Aula 2', 'Aula 3') NOT NULL,
     EST_ACT ENUM('Disponible', 'Mantenimiento', 'Asignado') NOT NULL,
     ID_PRO INT,
+    PC_ACT VARCHAR(100),
     FOREIGN KEY (ID_PRO) REFERENCES PROVEEDORES(ID_PRO) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`;

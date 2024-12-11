@@ -11,6 +11,7 @@ export const getAllActivos = async () => {
           a.CAT_ACT, 
           a.UBI_ACT, 
           a.EST_ACT, 
+          a.PC_ACT,
           p.NOM_PRO AS NOM_PRO 
         FROM ACTIVOS a 
         LEFT JOIN PROVEEDORES p ON a.ID_PRO = p.ID_PRO

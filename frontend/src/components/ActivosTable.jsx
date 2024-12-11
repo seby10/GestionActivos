@@ -8,7 +8,8 @@ const ActivosTable = () => {
   const [activos, setActivos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterCategory, setFilterCategory] = useState(""); // Nuevo estado para la categoría
+  const [filterCategory, setFilterCategory] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -48,6 +49,11 @@ const ActivosTable = () => {
         ? String(activo.CAT_ACT).toLowerCase() === filterCategory.toLowerCase()
         : true
     )
+    .filter((activo) =>
+      filterLocation
+        ? String(activo.UBI_ACT).toLowerCase() === filterLocation.toLowerCase()
+        : true
+    )
     .sort((a, b) => {
       if (sortOrder === "asc") {
         return a.NOM_ACT.localeCompare(b.NOM_ACT);
@@ -76,7 +82,10 @@ const ActivosTable = () => {
     setFilterCategory(e.target.value);
     setCurrentPage(1);
   };
-
+  const handleLocationChange = (e) => {
+    setFilterLocation(e.target.value);
+    setCurrentPage(1);
+  };
   const handleEdit = (activo) => {
     setActivoToEdit(activo);
     setUpdatedActivo({ ...activo });
@@ -112,39 +121,60 @@ const ActivosTable = () => {
   return (
     <div className="container-fluid my-5">
       <div style={{ backgroundColor: "#efefef" }} className="card p-4">
-        <header className="mb-4 d-flex flex-wrap gap-3 align-items-center">
-          <h1 className="h4">Tabla de Activos</h1>
-          <input
-            type="text"
-            placeholder="Buscar activos..."
-            value={searchQuery}
-            onChange={handleSearch}
-            className="form-control"
-            style={{ flex: "1 1 auto", maxWidth: "300px" }}
-          />
-          <select
-            value={filterCategory}
-            onChange={handleCategoryChange}
-            className="form-select"
-            style={{ flex: "1 1 auto", maxWidth: "300px" }}
-          >
-            <option value="">Todas las categorías</option>
-            <option value="informático">Informático</option>
-            <option value="mueble">Mueble</option>
-            <option value="electrónico">Electrónico</option>
-            <option value="vehículo">Vehículo</option>
-            <option value="mobiliario de oficina">Mobiliario de Oficina</option>
-            <option value="herramienta">Herramienta</option>
-            <option value="equipamiento médico">Equipamiento Médico</option>
-            <option value="equipos de comunicación">
-              Equipos de Comunicación
-            </option>
-            <option value="instrumento de laboratorio">
-              Instrumento de Laboratorio
-            </option>
-            <option value="equipo de producción">Equipo de Producción</option>
-            <option value="equipo de seguridad">Equipo de Seguridad</option>
-          </select>
+        <header className="mb-4">
+          <h1 className="h4 mb-3">Tabla de Activos</h1>
+
+          {/* Barra de búsqueda y selectores */}
+          <div className="d-flex gap-3" style={{ maxWidth: "800px" }}>
+            <input
+              type="text"
+              placeholder="Buscar activos..."
+              value={searchQuery}
+              onChange={handleSearch}
+              className="form-control"
+              style={{ flex: "1 1 auto" }}
+            />
+            <select
+              value={filterCategory}
+              onChange={handleCategoryChange}
+              className="form-select"
+              style={{ flex: "1 1 auto" }}
+            >
+              <option value="">Todas las categorías</option>
+              <option value="informático">Informático</option>
+              <option value="mueble">Mueble</option>
+              <option value="electrónico">Electrónico</option>
+              <option value="vehículo">Vehículo</option>
+              <option value="mobiliario de oficina">
+                Mobiliario de Oficina
+              </option>
+              <option value="herramienta">Herramienta</option>
+              <option value="equipamiento médico">Equipamiento Médico</option>
+              <option value="equipos de comunicación">
+                Equipos de Comunicación
+              </option>
+              <option value="instrumento de laboratorio">
+                Instrumento de Laboratorio
+              </option>
+              <option value="equipo de producción">Equipo de Producción</option>
+              <option value="equipo de seguridad">Equipo de Seguridad</option>
+            </select>
+            <select
+              value={filterLocation}
+              onChange={handleLocationChange}
+              className="form-select"
+              style={{ flex: "1 1 auto" }}
+            >
+              <option value="">Todas las ubicaciones</option>
+              <option value="Laboratorio A">Laboratorio A</option>
+              <option value="Laboratorio B">Laboratorio B</option>
+              <option value="Laboratorio C">Laboratorio C</option>
+              <option value="Laboratorio D">Laboratorio D</option>
+              <option value="Aula 1">Aula 1</option>
+              <option value="Aula 2">Aula 2</option>
+              <option value="Aula 3">Aula 3</option>
+            </select>
+          </div>
         </header>
 
         {loading ? (
@@ -164,6 +194,7 @@ const ActivosTable = () => {
                   <th>Categoría</th>
                   <th>Ubicación</th>
                   <th>Estado</th>
+                  <th>Proceso de Compra</th>
                   <th>Proveedor</th>
                   <th>Acciones</th>
                 </tr>
@@ -171,7 +202,7 @@ const ActivosTable = () => {
               <tbody>
                 {paginatedActivos.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="text-center">
+                    <td colSpan="9" className="text-center">
                       No se encontraron activos.
                     </td>
                   </tr>
@@ -184,6 +215,7 @@ const ActivosTable = () => {
                       <td>{activo.CAT_ACT}</td>
                       <td>{activo.UBI_ACT}</td>
                       <td>{activo.EST_ACT}</td>
+                      <td>{activo.PC_ACT}</td>
                       <td>{activo.NOM_PRO || "Sin proveedor"}</td>
                       <td>
                         <button
@@ -200,7 +232,139 @@ const ActivosTable = () => {
             </table>
           </div>
         )}
-
+        {activoToEdit && (
+          <div
+            className="modal fade show"
+            tabIndex="-1"
+            style={{ display: "block" }}
+            aria-hidden="true"
+          >
+            <div className="modal-dialog">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Editar Activo</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setActivoToEdit(null)}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <div className="mb-3">
+                    <label className="form-label">Nombre</label>
+                    <input
+                      type="text"
+                      name="NOM_ACT"
+                      className="form-control"
+                      value={updatedActivo.NOM_ACT || ""}
+                      onChange={handleUpdateChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Marca</label>
+                    <input
+                      type="text"
+                      name="MAR_ACT"
+                      className="form-control"
+                      value={updatedActivo.MAR_ACT || ""}
+                      onChange={handleUpdateChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Modelo</label>
+                    <input
+                      type="text"
+                      name="MOD_ACT"
+                      className="form-control"
+                      value={updatedActivo.MOD_ACT || ""}
+                      onChange={handleUpdateChange}
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Categoría</label>
+                    <select
+                      name="CAT_ACT"
+                      className="form-select"
+                      value={updatedActivo.CAT_ACT || ""}
+                      onChange={handleUpdateChange}
+                    >
+                      <option value="informático">Informático</option>
+                      <option value="mueble">Mueble</option>
+                      <option value="electrónico">Electrónico</option>
+                      <option value="vehículo">Vehículo</option>
+                      <option value="mobiliario de oficina">
+                        Mobiliario de Oficina
+                      </option>
+                      <option value="herramienta">Herramienta</option>
+                      <option value="equipamiento médico">
+                        Equipamiento Médico
+                      </option>
+                      <option value="equipos de comunicación">
+                        Equipos de Comunicación
+                      </option>
+                      <option value="instrumento de laboratorio">
+                        Instrumento de Laboratorio
+                      </option>
+                      <option value="equipo de producción">
+                        Equipo de Producción
+                      </option>
+                      <option value="equipo de seguridad">
+                        Equipo de Seguridad
+                      </option>
+                      <option value="otros">Otros</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Ubicación</label>
+                    <select
+                      name="UBI_ACT"
+                      className="form-select"
+                      value={updatedActivo.UBI_ACT || ""}
+                      onChange={handleUpdateChange}
+                    >
+                      <option value="Laboratorio A">Laboratorio A</option>
+                      <option value="Laboratorio B">Laboratorio B</option>
+                      <option value="Laboratorio C">Laboratorio C</option>
+                      <option value="Laboratorio D">Laboratorio D</option>
+                      <option value="Aula 1">Aula 1</option>
+                      <option value="Aula 2">Aula 2</option>
+                      <option value="Aula 3">Aula 3</option>
+                    </select>
+                  </div>
+                  <div className="mb-3">
+                    <label className="form-label">Estado</label>
+                    <select
+                      name="EST_ACT"
+                      className="form-select"
+                      value={updatedActivo.EST_ACT || ""}
+                      onChange={handleUpdateChange}
+                    >
+                      <option value="disponible">Disponible</option>
+                      <option value="mantenimiento">Mantenimiento</option>
+                      <option value="asignado">Asignado</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="modal-footer">
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => setActivoToEdit(null)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleUpdate}
+                  >
+                    Guardar Cambios
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Paginación */}
         <div className="d-flex justify-content-center mt-3">
           <button
