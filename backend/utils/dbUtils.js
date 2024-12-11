@@ -38,9 +38,10 @@ const createTable = async (tableName, query) => {
     await pool.query(query);
     console.log(`${tableName} table created or already exists`);
   } catch (error) {
-    console.log(`Error creating ${tableName}`, error);
+    console.log(`Error creating ${tableName}, error:`, error);
   }
 };
+
 
 const createAllTable = async () => {
   try {

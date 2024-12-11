@@ -3,6 +3,8 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import ExcelComponent from './ExcelComponent';
+
 
 const ActivosTable = () => {
   const [activos, setActivos] = useState([]);
@@ -39,6 +41,17 @@ const ActivosTable = () => {
     fetchData();
   }, []);
 
+  const handleDataUpload = () => {
+    const fetchData = async () => {
+      try {
+        const activosRes = await axios.get("http://localhost:3000/api/activos");
+        setActivos(activosRes.data);
+      } catch (err) {
+        setError("Error al cargar los datos.");
+      }
+    };
+    fetchData();
+  };
   // Filtrar activos por búsqueda y categoría
   const filteredActivos = activos
     .filter((activo) =>
@@ -82,10 +95,12 @@ const ActivosTable = () => {
     setFilterCategory(e.target.value);
     setCurrentPage(1);
   };
+
   const handleLocationChange = (e) => {
     setFilterLocation(e.target.value);
     setCurrentPage(1);
   };
+
   const handleEdit = (activo) => {
     setActivoToEdit(activo);
     setUpdatedActivo({ ...activo });
@@ -122,60 +137,58 @@ const ActivosTable = () => {
     <div className="container-fluid my-5">
       <div style={{ backgroundColor: "#efefef" }} className="card p-4">
         <header className="mb-4">
-          <h1 className="h4 mb-3">Tabla de Activos</h1>
-
-          {/* Barra de búsqueda y selectores */}
-          <div className="d-flex gap-3" style={{ maxWidth: "800px" }}>
-            <input
-              type="text"
-              placeholder="Buscar activos..."
-              value={searchQuery}
-              onChange={handleSearch}
-              className="form-control"
-              style={{ flex: "1 1 auto" }}
-            />
-            <select
-              value={filterCategory}
-              onChange={handleCategoryChange}
-              className="form-select"
-              style={{ flex: "1 1 auto" }}
-            >
-              <option value="">Todas las categorías</option>
-              <option value="informático">Informático</option>
-              <option value="mueble">Mueble</option>
-              <option value="electrónico">Electrónico</option>
-              <option value="vehículo">Vehículo</option>
-              <option value="mobiliario de oficina">
-                Mobiliario de Oficina
-              </option>
-              <option value="herramienta">Herramienta</option>
-              <option value="equipamiento médico">Equipamiento Médico</option>
-              <option value="equipos de comunicación">
-                Equipos de Comunicación
-              </option>
-              <option value="instrumento de laboratorio">
-                Instrumento de Laboratorio
-              </option>
-              <option value="equipo de producción">Equipo de Producción</option>
-              <option value="equipo de seguridad">Equipo de Seguridad</option>
-            </select>
-            <select
-              value={filterLocation}
-              onChange={handleLocationChange}
-              className="form-select"
-              style={{ flex: "1 1 auto" }}
-            >
-              <option value="">Todas las ubicaciones</option>
-              <option value="Laboratorio A">Laboratorio A</option>
-              <option value="Laboratorio B">Laboratorio B</option>
-              <option value="Laboratorio C">Laboratorio C</option>
-              <option value="Laboratorio D">Laboratorio D</option>
-              <option value="Aula 1">Aula 1</option>
-              <option value="Aula 2">Aula 2</option>
-              <option value="Aula 3">Aula 3</option>
-            </select>
+          <div className="d-flex justify-content-between align-items-center">
+            <h1 className="h4 mb-0">Tabla de Activos</h1>
+            <div className="d-flex align-items-center"> 
+              <ExcelComponent onDataUpload={handleDataUpload} />
+            </div>
           </div>
         </header>
+        {/* Barra de búsqueda y selectores */}
+        <div className="d-flex gap-3 mb-4" style={{ maxWidth: "800px" }}>
+          <input
+            type="text"
+            placeholder="Buscar activos..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="form-control"
+            style={{ flex: "1 1 auto" }}
+          />
+          <select
+            value={filterCategory}
+            onChange={handleCategoryChange}
+            className="form-select"
+            style={{ flex: "1 1 auto" }}
+          >
+            <option value="">Todas las categorías</option>
+            <option value="informático">Informático</option>
+            <option value="mueble">Mueble</option>
+            <option value="electrónico">Electrónico</option>
+            <option value="vehículo">Vehículo</option>
+            <option value="mobiliario de oficina">Mobiliario de Oficina</option>
+            <option value="herramienta">Herramienta</option>
+            <option value="equipamiento médico">Equipamiento Médico</option>
+            <option value="equipos de comunicación">Equipos de Comunicación</option>
+            <option value="instrumento de laboratorio">Instrumento de Laboratorio</option>
+            <option value="equipo de producción">Equipo de Producción</option>
+            <option value="equipo de seguridad">Equipo de Seguridad</option>
+          </select>
+          <select
+            value={filterLocation}
+            onChange={handleLocationChange}
+            className="form-select"
+            style={{ flex: "1 1 auto" }}
+          >
+            <option value="">Todas las ubicaciones</option>
+            <option value="Laboratorio A">Laboratorio A</option>
+            <option value="Laboratorio B">Laboratorio B</option>
+            <option value="Laboratorio C">Laboratorio C</option>
+            <option value="Laboratorio D">Laboratorio D</option>
+            <option value="Aula 1">Aula 1</option>
+            <option value="Aula 2">Aula 2</option>
+            <option value="Aula 3">Aula 3</option>
+          </select>
+        </div>
 
         {loading ? (
           <p>Cargando activos...</p>
@@ -236,8 +249,9 @@ const ActivosTable = () => {
           <div
             className="modal fade show"
             tabIndex="-1"
-            style={{ display: "block" }}
-            aria-hidden="true"
+            style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+            aria-modal="true"
+            role="dialog"
           >
             <div className="modal-dialog">
               <div className="modal-content">
@@ -247,9 +261,11 @@ const ActivosTable = () => {
                     type="button"
                     className="btn-close"
                     onClick={() => setActivoToEdit(null)}
+                    aria-label="Cerrar"
                   ></button>
                 </div>
                 <div className="modal-body">
+
                   <div className="mb-3">
                     <label className="form-label">Nombre</label>
                     <input
@@ -351,14 +367,10 @@ const ActivosTable = () => {
                     className="btn btn-secondary"
                     onClick={() => setActivoToEdit(null)}
                   >
-                    Cancelar
+                    Cerrar
                   </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    onClick={handleUpdate}
-                  >
-                    Guardar Cambios
+                  <button type="button" className="btn btn-primary" onClick={handleUpdate}>
+                    Actualizar
                   </button>
                 </div>
               </div>
@@ -367,32 +379,23 @@ const ActivosTable = () => {
         )}
         {/* Paginación */}
         <div className="d-flex justify-content-center mt-3">
+
           <button
-            className="btn btn-secondary mx-2"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            className="btn btn-outline-secondary"
             disabled={currentPage === 1}
           >
             <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+
           </button>
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              className={`btn btn-outline-secondary mx-1 ${
-                currentPage === i + 1 ? "active" : ""
-              }`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+          <span>Página {currentPage} de {totalPages}</span>
           <button
-            className="btn btn-secondary mx-2"
-            onClick={() =>
-              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-            }
+            onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+            className="btn btn-outline-secondary"
             disabled={currentPage === totalPages}
           >
             <FontAwesomeIcon icon={faArrowRight} className="ms-2" />
+
           </button>
         </div>
       </div>
