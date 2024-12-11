@@ -37,11 +37,14 @@ export const getActivoByIdFromDB = async (id) => {
 };
 
 export const addActivo = async (activo) => {
-  const { NOM_ACT, CAT_ACT, UBI_ACT, EST_ACT } = activo;
+  const { NOM_ACT, MAR_ACT, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = activo;
+  
+  const marca = MAR_ACT && MAR_ACT.trim() !== '' ? MAR_ACT : 'Desconocido';
+
   try {
     const [result] = await pool.query(
-      "INSERT INTO ACTIVOS (NOM_ACT, CAT_ACT, UBI_ACT, EST_ACT) VALUES (?, ?, ?, ?)",
-      [NOM_ACT, CAT_ACT, UBI_ACT, EST_ACT]
+      "INSERT INTO ACTIVOS (NOM_ACT, MAR_ACT, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [NOM_ACT, marca, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT]
     );
     return { success: true, id: result.insertId };
   } catch (error) {
@@ -49,6 +52,8 @@ export const addActivo = async (activo) => {
     throw new Error("Error al agregar el activo");
   }
 };
+
+
 
 export const updateActivo = async (id, activoData) => {
   try {
