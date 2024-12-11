@@ -1,39 +1,40 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Form, Button, Alert } from 'react-bootstrap';
-import './login.css'; // Archivo CSS personalizado
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [type, setType] = useState('tecnico');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [type, setType] = useState("tecnico");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/api/auth/login', {
-        email,
-        password,
-        type,
-      });
+      const response = await axios.post(
+        "http://localhost:3000/api/auth/login",
+        {
+          email,
+          password,
+          type,
+        }
+      );
 
       if (response.data.success) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
 
-        if (response.data.user.type === 'admin') {
-          navigate('/admin/dashboard');
+        if (response.data.user.type === "admin") {
+          navigate("/admin");
         } else {
-          navigate('/tecnico/dashboard');
+          navigate("/tecnico");
         }
       } else {
         setError(response.data.message);
       }
     } catch (err) {
-      setError('Login failed. Check your credentials.');
+      setError("Error. Compruebe sus credenciales.");
     }
   };
 
@@ -41,49 +42,152 @@ const Login = () => {
     <div className="login-container">
       <div className="login-box">
         <h2>Sistema de Gestión</h2>
-        {error && <Alert variant="danger">{error}</Alert>}
-        <Form onSubmit={handleLogin}>
-          <Form.Group className="mb-4">
-            <Form.Label>Correo Electrónico</Form.Label>
-            <Form.Control
+        <form onSubmit={handleLogin}>
+          {error && <div className="error-message">{error}</div>}
+          <div className="input-group">
+            <input
               type="email"
-              placeholder="Correo electrónico"
+              id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
-          </Form.Group>
-
-          <Form.Group className="mb-4">
-            <Form.Label>Contraseña</Form.Label>
-            <Form.Control
+            <label htmlFor="email">Correo Electrónico</label>
+          </div>
+          <div className="input-group">
+            <input
               type="password"
-              placeholder="Contraseña"
+              id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-          </Form.Group>
-
-          <Form.Group className="mb-4">
-            <Form.Label>Tipo de Usuario</Form.Label>
-            <Form.Select
+            <label htmlFor="password">Contraseña</label>
+          </div>
+          <div className="input-group">
+            <select
+              id="type"
               value={type}
               onChange={(e) => setType(e.target.value)}
               required
             >
               <option value="tecnico">Técnico</option>
               <option value="admin">Administrador</option>
-            </Form.Select>
-          </Form.Group>
-
-          <div className="d-grid gap-2">
-            <Button className="btn-login" type="submit">
-              Iniciar Sesión
-            </Button>
+            </select>
+            <label htmlFor="type">Tipo de Usuario</label>
           </div>
-        </Form>
+          <button type="submit" className="btn-login">
+            Iniciar Sesión
+          </button>
+        </form>
       </div>
+
+      <style jsx>{`
+        .login-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          background: linear-gradient(135deg, #457b9d, #1d3557);
+          font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .login-box {
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+          padding: 40px;
+          width: 100%;
+          max-width: 400px;
+        }
+
+        h2 {
+          color: #333;
+          text-align: center;
+          margin-bottom: 30px;
+          font-size: 28px;
+        }
+
+        .input-group {
+          position: relative;
+          margin-bottom: 30px;
+        }
+
+        input,
+        select {
+          width: 100%;
+          padding: 10px 0;
+          font-size: 16px;
+          color: #333;
+          border: none;
+          border-bottom: 1px solid #ddd;
+          outline: none;
+          background: transparent;
+          transition: border-color 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+          border-bottom-color: #6e8efb;
+        }
+
+        label {
+          position: absolute;
+          top: 10px;
+          left: 0;
+          font-size: 16px;
+          color: #999;
+          pointer-events: none;
+          transition: 0.2s ease all;
+        }
+
+        input:focus ~ label,
+        input:valid ~ label,
+        select:focus ~ label,
+        select:valid ~ label {
+          top: -20px;
+          font-size: 14px;
+          color: #6e8efb;
+        }
+
+        .btn-login {
+          width: 100%;
+          padding: 12px;
+          background: #6e8efb;
+          color: white;
+          border: none;
+          border-radius: 25px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background 0.3s ease;
+        }
+
+        .btn-login:hover {
+          background: #5a7af2;
+        }
+
+        .error-message {
+          color: #ff3860;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        @media (max-width: 480px) {
+          .login-box {
+            padding: 20px;
+          }
+
+          h2 {
+            font-size: 24px;
+          }
+
+          input,
+          select,
+          .btn-login {
+            font-size: 14px;
+          }
+        }
+      `}</style>
     </div>
   );
 };

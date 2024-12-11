@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from './Header';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -14,20 +15,35 @@ const Dashboard = () => {
     }
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-  };
-
   if (!user) return null;
 
   return (
-    <div className="container mt-5">
-      <h2>Dashboard</h2>
-      <p>Bienvenido admin</p>
-      <p>Email: {user.email}</p>
-      <button onClick={handleLogout} className="btn btn-danger">Cerrar Sesión</button>
+    <div className="dashboard-container">
+      <Header />
+      <main className="dashboard-content">
+        <h2>Dashboard</h2>
+        
+        
+      </main>
+
+      <style jsx>{`
+        .dashboard-container {
+          display: flex;
+          min-height: 100vh;
+        }
+
+        .dashboard-content {
+          flex-grow: 1;
+          padding: 20px;
+          margin-left: 250px; /* Ajusta este valor al ancho de tu Navbar */
+          transition: margin-left 0.3s ease-in-out;
+        }
+
+        h2 {
+          color: #333;
+          margin-bottom: 20px;
+        }
+      `}</style>
     </div>
   );
 };

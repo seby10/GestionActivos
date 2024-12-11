@@ -11,7 +11,7 @@ const App = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route
-        path="/admin/dashboard"
+        path="/admin"
         element={
           <ProtectedRoute>
             <Header />
@@ -20,7 +20,7 @@ const App = () => {
         }
       />
       <Route
-        path="/tecnico/dashboard"
+        path="/tecnico"
         element={
           <ProtectedRoute>
             <Header />
