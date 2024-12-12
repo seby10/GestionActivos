@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar, Alert } from "@mui/material";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
@@ -22,10 +22,9 @@ const ActivosTable = () => {
   const [activoToEdit, setActivoToEdit] = useState(null);
   const [updatedActivo, setUpdatedActivo] = useState({});
   const user = JSON.parse(localStorage.getItem("user"));
-  const [alertMessage, setAlertMessage] = useState(""); 
-  const [alertSeverity, setAlertSeverity] = useState(""); 
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertSeverity, setAlertSeverity] = useState("");
   const [showAlert, setShowAlert] = useState(false);
-  
 
   // Fetch activos y proveedores
   useEffect(() => {
@@ -121,15 +120,27 @@ const ActivosTable = () => {
       [name]: value,
     });
 
-    if (activoToEdit[name] !== value) {
+    if (activoToEdit[name] !== value || value === "") {
       setIsEdited(true);
     } else {
-      setIsEdited(false); 
+      setIsEdited(false);
     }
   };
-  
 
   const handleUpdate = async () => {
+    // Verifica si algún campo obligatorio está vacío
+    if (
+      !updatedActivo.NOM_ACT?.trim() ||
+      !updatedActivo.MAR_ACT?.trim() ||
+      !updatedActivo.MOD_ACT?.trim()
+    ) {
+      setAlertMessage("Todos los campos requeridos deben estar completos.");
+      setAlertSeverity("warning");
+      setShowAlert(true);
+      return;
+    }
+  
+    // Verifica si al menos un campo fue editado
     if (!isEdited) {
       setAlertMessage("Debe editar al menos un campo antes de guardar.");
       setAlertSeverity("warning");
@@ -165,7 +176,7 @@ const ActivosTable = () => {
     <div className="container-fluid my-5">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div className="d-flex align-items-center">
-          {user && user.type === 'admin' && (
+          {user && user.type === "admin" && (
             <ExcelComponent onDataUpload={handleDataUpload} />
           )}
         </div>
@@ -266,7 +277,7 @@ const ActivosTable = () => {
                       <td>{activo.PC_ACT}</td>
                       <td>{activo.NOM_PRO ?? "Sin proveedor"}</td>
                       <td>
-                        {user && user.type === 'admin' && (
+                        {user && user.type === "admin" && (
                           <button
                             className="btn btn-outline-primary"
                             onClick={() => handleEdit(activo)}
@@ -274,7 +285,6 @@ const ActivosTable = () => {
                             <FontAwesomeIcon icon={faPen} /> Editar
                           </button>
                         )}
-
                       </td>
                     </tr>
                   ))
@@ -306,7 +316,9 @@ const ActivosTable = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                <p className="mb-2" style={{ padding: '5px' }}>Modifique los detalles del activo y guarde cambios.</p>
+                  <p className="mb-2" style={{ padding: "5px" }}>
+                    Modifique los detalles del activo y guarde cambios.
+                  </p>
                   <div className="mb-3">
                     <label className="form-label">Nombre</label>
                     <input
@@ -315,6 +327,7 @@ const ActivosTable = () => {
                       className="form-control"
                       value={updatedActivo.NOM_ACT || ""}
                       onChange={handleUpdateChange}
+                      required
                     />
                   </div>
                   <div className="mb-3">
@@ -325,6 +338,7 @@ const ActivosTable = () => {
                       className="form-control"
                       value={updatedActivo.MAR_ACT || ""}
                       onChange={handleUpdateChange}
+                      required
                     />
                   </div>
                   <div className="mb-3">
@@ -335,6 +349,7 @@ const ActivosTable = () => {
                       className="form-control"
                       value={updatedActivo.MOD_ACT || ""}
                       onChange={handleUpdateChange}
+                      required
                     />
                   </div>
                   <div className="mb-3">
@@ -436,8 +451,9 @@ const ActivosTable = () => {
           {[...Array(totalPages)].map((_, i) => (
             <button
               key={i}
-              className={`btn btn-outline-secondary mx-1 ${currentPage === i + 1 ? "active" : ""
-                }`}
+              className={`btn btn-outline-secondary mx-1 ${
+                currentPage === i + 1 ? "active" : ""
+              }`}
               onClick={() => setCurrentPage(i + 1)}
             >
               {i + 1}
@@ -455,16 +471,16 @@ const ActivosTable = () => {
           </button>
         </div>
       </div>
-            {showAlert && (
+      {showAlert && (
         <Snackbar
           open={showAlert}
           autoHideDuration={6000}
           onClose={() => setShowAlert(false)}
         >
-          <Alert 
-            onClose={() => setShowAlert(false)} 
-            severity={alertSeverity} 
-            sx={{ width: '100%' }}
+          <Alert
+            onClose={() => setShowAlert(false)}
+            severity={alertSeverity}
+            sx={{ width: "100%" }}
           >
             {alertMessage}
           </Alert>
