@@ -5,7 +5,7 @@ import axios from "axios";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [type, setType] = useState("tecnico");
+  const [type, setType] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -17,7 +17,7 @@ const Login = () => {
         {
           email,
           password,
-          type,
+          type
         }
       );
 
@@ -26,9 +26,9 @@ const Login = () => {
         localStorage.setItem("user", JSON.stringify(response.data.user));
 
         if (response.data.user.type === "admin") {
-          navigate("/admin");
+          navigate("/admin/dashboard");
         } else {
-          navigate("/tecnico");
+          navigate("/tecnico/dashboard");
         }
       } else {
         setError(response.data.message);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaTools, FaBars, FaTimes, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaTools, FaBars, FaSignOutAlt } from 'react-icons/fa';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,113 +15,111 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { name: 'Activos', path: '/dashboard', icon: FaHome },
+    { name: 'Activos', path: '/', icon: FaHome },
     { name: 'Mantenimientos', path: '/mantenimientos', icon: FaTools },
   ];
 
   return (
-    <>
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="toggle-button"
-        aria-label="Toggle menu"
-      >
-        {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
-      </button>
-
-      <nav className={`navbar ${isOpen ? 'open' : ''}`}>
-        <div className="navbar-header">
-          <h1>Mi Aplicación</h1>
+    <nav className="navbar">
+      <div className="navbar-container">
+        <Link to="/" className="navbar-logo">
+          Mantenimiento de Activos
+        </Link>
+        <div className="menu-icon" onClick={() => setIsOpen(!isOpen)}>
+          <FaBars />
         </div>
-
-        <ul className="nav-list">
+        <ul className={isOpen ? 'nav-menu active' : 'nav-menu'}>
           {navItems.map((item) => (
-            <li key={item.name}>
+            <li key={item.name} className="nav-item">
               <Link
                 to={item.path}
-                className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
                 onClick={() => setIsOpen(false)}
               >
                 <item.icon className="nav-icon" />
-                {item.name}
+                <span>{item.name}</span>
               </Link>
             </li>
           ))}
+          {user && (
+            <li className="nav-item user-info">
+              <span>Bienvenido, {user.name}</span>
+            </li>
+          )}
+          <li className="nav-item">
+            <button onClick={handleLogout} className="logout-button">
+              <FaSignOutAlt className="nav-icon" />
+              <span>Cerrar sesión</span>
+            </button>
+          </li>
         </ul>
-
-        {user && (
-          <div className="user-info">
-            <p>Bienvenido,</p>
-            <p className="user-name">{user.name}</p>
-          </div>
-        )}
-
-        <button onClick={handleLogout} className="logout-button">
-          <FaSignOutAlt className="logout-icon" />
-          Cerrar sesión
-        </button>
-      </nav>
-
-      {isOpen && <div className="overlay" onClick={() => setIsOpen(false)}></div>}
+      </div>
 
       <style jsx>{`
-        .toggle-button {
-          position: fixed;
-          top: 1rem;
-          left: 1rem;
-          z-index: 1000;
-          background-color: #2563eb;
-          color: white;
-          border: none;
-          border-radius: 4px;
-          padding: 0.5rem;
-          cursor: pointer;
-          display: none;
-        }
-
         .navbar {
-          position: fixed;
-          left: 0;
-          top: 0;
-          bottom: 0;
-          width: 250px;
           background-color: #457b9d;
-          color: white;
-          padding: 1rem;
+          height: 80px;
           display: flex;
-          flex-direction: column;
-          transition: transform 0.3s ease-in-out;
+          justify-content: center;
+          align-items: center;
+          font-size: 1rem;
+          position: sticky;
+          top: 0;
+          z-index: 999;
         }
 
-        .navbar-header {
-          text-align: center;
-          margin-bottom: 2rem;
+        .navbar-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          height: 80px;
+          max-width: 1500px;
+          padding: 0 24px;
         }
 
-        .navbar-header h1 {
+        .navbar-logo {
+          color: #fff;
+          justify-self: flex-start;
+          cursor: pointer;
           font-size: 1.5rem;
+          display: flex;
+          align-items: center;
+          text-decoration: none;
           font-weight: bold;
         }
 
-        .nav-list {
-          list-style-type: none;
-          padding: 0;
+        .nav-menu {
+          display: flex;
+          align-items: center;
+          list-style: none;
+          text-align: center;
           margin: 0;
-          flex-grow: 1;
+          padding: 0;
         }
 
         .nav-item {
+          height: 80px;
           display: flex;
           align-items: center;
-          padding: 0.5rem;
-          color: white;
-          text-decoration: none;
-          border-radius: 4px;
-          transition: background-color 0.2s;
         }
 
-        .nav-item:hover, .nav-item.active {
-          background-color: #1d4ed8;
+        .nav-link {
+          color: #fff;
+          display: flex;
+          align-items: center;
+          text-decoration: none;
+          padding: 0 1rem;
+          height: 100%;
+        }
+
+        .nav-link:hover {
+          background-color: #669bbc;
+          transition: all 0.2s ease-out;
+        }
+
+        .nav-link.active {
+          background-color:rgb(72, 136, 175);
         }
 
         .nav-icon {
@@ -129,65 +127,74 @@ const Navbar = () => {
         }
 
         .user-info {
-          text-align: center;
-          margin-bottom: 1rem;
-        }
-
-        .user-name {
-          font-weight: bold;
+          color: #fff;
+          padding: 0 1rem;
         }
 
         .logout-button {
-          width: 100%;
-          background-color: #e63946;
-          color: white;
-          border: none;
-          padding: 0.5rem;
-          border-radius: 4px;
-          cursor: pointer;
           display: flex;
           align-items: center;
-          justify-content: center;
-          transition: background-color 0.2s;
+          background: none;
+          border: none;
+          color: #fff;
+          cursor: pointer;
+          font-size: 1rem;
+          padding: 0 1rem;
+          height: 100%;
         }
 
         .logout-button:hover {
-          background-color: #b91c1c;
+          background-color: #c1121f;
         }
 
-        .logout-icon {
-          margin-right: 0.5rem;
-        }
-
-        .overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background-color: rgba(0, 0, 0, 0.5);
+        .menu-icon {
           display: none;
         }
 
-        @media (max-width: 768px) {
-          .toggle-button {
+        @media screen and (max-width: 960px) {
+          .nav-menu {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            position: absolute;
+            top: 80px;
+            left: -100%;
+            opacity: 1;
+            transition: all 0.5s ease;
+          }
+
+          .nav-menu.active {
+            background: #2563eb;
+            left: 0;
+            opacity: 1;
+            transition: all 0.5s ease;
+            z-index: 1;
+          }
+
+          .nav-item {
+            height: 60px;
+          }
+
+          .nav-link {
+            text-align: center;
+            padding: 2rem;
+            width: 100%;
+            display: table;
+          }
+
+          .menu-icon {
             display: block;
-          }
-
-          .navbar {
-            transform: translateX(-100%);
-          }
-
-          .navbar.open {
-            transform: translateX(0);
-          }
-
-          .overlay {
-            display: block;
+            position: absolute;
+            top: 0;
+            right: 0;
+            transform: translate(-100%, 60%);
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #fff;
           }
         }
       `}</style>
-    </>
+    </nav>
   );
 };
 

@@ -10,10 +10,10 @@ const ProtectedRoute = ({ children }) => {
   }
 
   const userType = user.type;
-  if (userType === 'admin' && window.location.pathname !== '/admin') {
-    return <Navigate to="/admin" replace />;
-  } else if (userType === 'tecnico' && window.location.pathname !== '/tecnico') {
-    return <Navigate to="/tecnico" replace />;
+  if (userType === 'admin' && window.location.pathname !== '/admin/dashboard') {
+    return <Navigate to="/admin/dashboard" replace />;
+  } else if (userType === 'tecnico' && window.location.pathname !== '/tecnico/dashboard') {
+    return <Navigate to="/tecnico/dashboard" replace />;
   }
 
   return children;

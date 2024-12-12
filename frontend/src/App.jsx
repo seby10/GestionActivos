@@ -11,19 +11,17 @@ const App = () => {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route
-        path="/admin"
+        path="/admin/dashboard"
         element={
           <ProtectedRoute>
-            <Header />
             <AdminDashboard />
           </ProtectedRoute>
         }
       />
       <Route
-        path="/tecnico"
+        path="/tecnico/dashboard"
         element={
           <ProtectedRoute>
-            <Header />
             <TecnicoDashboard />
           </ProtectedRoute>
         }

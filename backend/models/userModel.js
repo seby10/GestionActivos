@@ -11,17 +11,20 @@ export const loginUser = async (email, password, type) => {
     try {
         const [rows] = await pool.query('SELECT * FROM USUARIOS WHERE COR_USU = ?', [email]);        
         if (rows.length === 0) {
-            return { success: false, message: 'User not found' };
+            return { success: false, message: 'User  not found' };
         }
         
         console.log("Email recibido:", email);
         console.log("Tipo recibido:", type);
         const user = rows[0];
         const passwordMatch = await bcrypt.compare(password, user.CON_USU);
-        console.log("¿Contraseña coincide?", passwordMatch);
+        const typeMatch = user.TIP_USU === type;
 
-        if (!passwordMatch) {
-            return { success: false, message: 'Incorrect password' };
+        console.log("¿Contraseña coincide?", passwordMatch);
+        console.log("¿Tipo coincide?", typeMatch);
+
+        if (!passwordMatch || !typeMatch) {
+            return { success: false, message: 'Incorrect password or type' };
         }
 
         const token = jwt.sign(
@@ -36,7 +39,7 @@ export const loginUser = async (email, password, type) => {
           success: true, 
           message: 'Login successful', 
           token, 
-          user: { id: user.ID_USU, email: user.COR_USU, name: user.NOM_USU, tipo: user.TIP_USU } 
+          user: { id: user.ID_USU, email: user.COR_USU, name: user.NOM_USU, type: user.TIP_USU } 
       };
     } catch (error) {
         console.error("Login error:", error);
