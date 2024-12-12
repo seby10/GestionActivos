@@ -19,6 +19,8 @@ const ActivosTable = () => {
 
   const [activoToEdit, setActivoToEdit] = useState(null);
   const [updatedActivo, setUpdatedActivo] = useState({});
+  const user = JSON.parse(localStorage.getItem("user"));
+
 
   // Fetch activos y proveedores
   useEffect(() => {
@@ -139,7 +141,10 @@ const ActivosTable = () => {
           <div className="d-flex justify-content-between align-items-center">
             <h1 className="h4 mb-0">Tabla de Activos</h1>
             <div className="d-flex align-items-center">
-              <ExcelComponent onDataUpload={handleDataUpload} />
+              {user && user.type === 'admin' && (
+                <ExcelComponent onDataUpload={handleDataUpload} />
+              )}
+
             </div>
           </div>
 
@@ -235,14 +240,17 @@ const ActivosTable = () => {
                       <td>{activo.UBI_ACT}</td>
                       <td>{activo.EST_ACT}</td>
                       <td>{activo.PC_ACT}</td>
-                      <td>{activo.NOM_PRO || "Sin proveedor"}</td>
+                      <td>{activo.NOM_PRO ?? "Sin proveedor"}</td>
                       <td>
-                        <button
-                          className="btn btn-outline-primary"
-                          onClick={() => handleEdit(activo)}
-                        >
-                          <FontAwesomeIcon icon={faPen} /> Editar
-                        </button>
+                        {user && user.type === 'admin' && (
+                          <button
+                            className="btn btn-outline-primary"
+                            onClick={() => handleEdit(activo)}
+                          >
+                            <FontAwesomeIcon icon={faPen} /> Editar
+                          </button>
+                        )}
+
                       </td>
                     </tr>
                   ))
@@ -399,9 +407,8 @@ const ActivosTable = () => {
           {[...Array(totalPages)].map((_, i) => (
             <button
               key={i}
-              className={`btn btn-outline-secondary mx-1 ${
-                currentPage === i + 1 ? "active" : ""
-              }`}
+              className={`btn btn-outline-secondary mx-1 ${currentPage === i + 1 ? "active" : ""
+                }`}
               onClick={() => setCurrentPage(i + 1)}
             >
               {i + 1}

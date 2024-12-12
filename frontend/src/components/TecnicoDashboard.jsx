@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
+import ActivosTable from './ActivosTable';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -21,64 +22,42 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <Header />
       <main className="dashboard-content">
-        <h2>Dashboard</h2>
-        <p>Bienvenido, {user.name}</p>
+        <div className="header-row">
+          <h2>Activos </h2>
+          <p className="welcome-message">Bienvenido, {user.name}</p>
+        </div>
       </main>
-
+      <ActivosTable />
       <style jsx>{`
         .dashboard-container {
           display: flex;
           flex-direction: column;
           min-height: 100vh;
         }
-
+  
         .dashboard-content {
-          flex-grow: 1;
           padding: 20px;
+          padding-bottom: 15px;
           background-color: #f0f4f8;
         }
-
+  
+        .header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+  
         h2 {
           color: #333;
-          margin-bottom: 20px;
+          margin: 0;
         }
-
-        .table-container {
-          background-color: white;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          overflow-x: auto;
-        }
-
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        th, td {
-          text-align: left;
-          padding: 12px;
-          border-bottom: 1px solid #e0e0e0;
-        }
-
-        th {
-          background-color: #f5f5f5;
-          font-weight: bold;
-          color: #333;
-        }
-
-        tr:last-child td {
-          border-bottom: none;
-        }
-
-        tr:hover {
-          background-color: #f9f9f9;
-        }
-
-        @media (max-width: 768px) {
-          .dashboard-content {
-            padding: 15px;
-          }
+  
+        .welcome-message {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 500;
+          color: #666;
+          text-align: right;
         }
       `}</style>
     </div>

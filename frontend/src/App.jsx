@@ -5,6 +5,7 @@ import AdminDashboard from "./components/AdminDashboard";
 import TecnicoDashboard from "./components/TecnicoDashboard";
 import ActivosTable from "./components/ActivosTable";
 import Header from "./components/Header";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const App = () => {
   return (

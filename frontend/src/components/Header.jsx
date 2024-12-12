@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHome, FaTools, FaBars, FaSignOutAlt } from 'react-icons/fa';
 
-const Navbar = () => {
+const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,15 +15,19 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { name: 'Activos', path: '/', icon: FaHome },
+    { 
+      name: 'Activos', 
+      path: user && user.type === 'admin' ? '/admin/dashboard' : user && user.type === 'tecnico' ? '/tecnico/dashboard' : '/dashboard', 
+      icon: FaHome 
+    },
     { name: 'Mantenimientos', path: '/mantenimientos', icon: FaTools },
   ];
 
   return (
-    <nav className="navbar">
-      <div className="navbar-container">
-        <Link to="/" className="navbar-logo">
-          Mantenimiento de Activos
+    <nav className="header">
+      <div className="header-container">
+        <Link to="/" className="header-logo">
+          AssetCare
         </Link>
         <div className="menu-icon" onClick={() => setIsOpen(!isOpen)}>
           <FaBars />
@@ -41,11 +45,6 @@ const Navbar = () => {
               </Link>
             </li>
           ))}
-          {user && (
-            <li className="nav-item user-info">
-              <span>Bienvenido, {user.name}</span>
-            </li>
-          )}
           <li className="nav-item">
             <button onClick={handleLogout} className="logout-button">
               <FaSignOutAlt className="nav-icon" />
@@ -56,7 +55,7 @@ const Navbar = () => {
       </div>
 
       <style jsx>{`
-        .navbar {
+        .header {
           background-color: #457b9d;
           height: 80px;
           display: flex;
@@ -68,7 +67,7 @@ const Navbar = () => {
           z-index: 999;
         }
 
-        .navbar-container {
+        .header-container {
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -78,7 +77,7 @@ const Navbar = () => {
           padding: 0 24px;
         }
 
-        .navbar-logo {
+        .header-logo {
           color: #fff;
           justify-self: flex-start;
           cursor: pointer;
@@ -198,5 +197,5 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Header;
 

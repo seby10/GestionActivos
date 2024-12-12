@@ -1,13 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState("tecnico");
   const [error, setError] = useState("");
+  //const [shake, setShake] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let timer;
+    if (error) {
+      timer = setTimeout(() => {
+        setError("");
+      }, 5000);
+    }
+    return () => clearTimeout(timer);
+  }, [error]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -31,10 +42,16 @@ const Login = () => {
           navigate("/tecnico/dashboard");
         }
       } else {
-        setError(response.data.message);
+        setError(response.data.message || "Error. Compruebe sus credenciales.");
+        setPassword("");
+        //setShake(true);
+        //setTimeout(() => setShake(false), 500);
       }
     } catch (err) {
       setError("Error. Compruebe sus credenciales.");
+      setPassword("");
+      //setShake(true);
+      //setTimeout(() => setShake(false), 500);
     }
   };
 
@@ -99,7 +116,20 @@ const Login = () => {
           padding: 40px;
           width: 100%;
           max-width: 400px;
+          transition: all 0.3s ease;
         }
+
+        /*
+        .login-box.shake {
+          animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+          20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        */
 
         h2 {
           color: #333;
@@ -170,6 +200,10 @@ const Login = () => {
           color: #ff3860;
           text-align: center;
           margin-bottom: 20px;
+          padding: 10px;
+          background-color: #ffeeee;
+          border-radius: 4px;
+          transition: all 0.3s ease;
         }
 
         @media (max-width: 480px) {
@@ -193,3 +227,4 @@ const Login = () => {
 };
 
 export default Login;
+
