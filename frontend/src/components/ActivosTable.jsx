@@ -139,7 +139,7 @@ const ActivosTable = () => {
       setShowAlert(true);
       return;
     }
-  
+
     // Verifica si al menos un campo fue editado
     if (!isEdited) {
       setAlertMessage("Debe editar al menos un campo antes de guardar.");
@@ -147,18 +147,18 @@ const ActivosTable = () => {
       setShowAlert(true);
       return;
     }
-  
+
     try {
       await axios.put(
         `http://localhost:3000/api/activos/${activoToEdit.ID_ACT}`,
         updatedActivo
       );
-  
+
       const updatedActivos = activos.map((activo) =>
         activo.ID_ACT === activoToEdit.ID_ACT ? { ...updatedActivo } : activo
       );
       setActivos(updatedActivos);
-  
+
       setActivoToEdit(null);
       setAlertMessage("Activo actualizado correctamente");
       setAlertSeverity("success");
@@ -170,7 +170,6 @@ const ActivosTable = () => {
       setShowAlert(true);
     }
   };
-  
 
   return (
     <div className="container-fluid my-5">
@@ -181,7 +180,7 @@ const ActivosTable = () => {
           )}
         </div>
       </div>
-      <div style={{ backgroundColor: "#efefef" }} className="card p-4">
+      <div style={{ backgroundColor: "rgb(240 244 248)" }} className="card p-4">
         <header className="mb-4">
           {/* Barra de búsqueda y selectores */}
           <div className="d-flex gap-3 mb-4" style={{ maxWidth: "800px" }}>
@@ -241,7 +240,7 @@ const ActivosTable = () => {
         ) : error ? (
           <p className="text-danger">{error}</p>
         ) : (
-          <div className="table-responsive">
+          <div className="table-responsive" style={{ fontFamily: "Helvetica" }}>
             <table className="table table-bordered table-hover">
               <thead>
                 <tr>
@@ -444,6 +443,7 @@ const ActivosTable = () => {
             className="btn btn-secondary mx-2"
             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
+            style={{ backgroundColor: "#007bff", border: "none" }}
           >
             <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
             Anterior
@@ -455,6 +455,12 @@ const ActivosTable = () => {
                 currentPage === i + 1 ? "active" : ""
               }`}
               onClick={() => setCurrentPage(i + 1)}
+              style={{
+                backgroundColor:
+                  currentPage === i + 1 ? "#007bff" : "transparent",
+                border: "none",
+                color: currentPage === i + 1 ? "#fff" : "#6c757d", // cambiar color de texto cuando no es activo
+              }}
             >
               {i + 1}
             </button>
@@ -465,6 +471,7 @@ const ActivosTable = () => {
               setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
             disabled={currentPage === totalPages}
+            style={{ backgroundColor: "#007bff", border: "none" }}
           >
             Siguiente
             <FontAwesomeIcon icon={faArrowRight} className="ms-2" />

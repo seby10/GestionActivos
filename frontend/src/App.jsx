@@ -3,9 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import AdminDashboard from "./components/AdminDashboard";
 import TecnicoDashboard from "./components/TecnicoDashboard";
-import ActivosTable from "./components/ActivosTable";
-import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Mantenimientos from "./components/mantenimientos";
 
 const App = () => {
   return (
@@ -24,6 +23,15 @@ const App = () => {
         element={
           <ProtectedRoute>
             <TecnicoDashboard />
+
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/mantenimientos"
+        element={
+          <ProtectedRoute>
+            <Mantenimientos />
           </ProtectedRoute>
         }
       />

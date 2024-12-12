@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaHome, FaTools, FaBars, FaSignOutAlt } from 'react-icons/fa';
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { FaHome, FaTools, FaBars, FaSignOutAlt } from "react-icons/fa";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -15,12 +15,17 @@ const Header = () => {
   };
 
   const navItems = [
-    { 
-      name: 'Activos', 
-      path: user && user.type === 'admin' ? '/admin/dashboard' : user && user.type === 'tecnico' ? '/tecnico/dashboard' : '/dashboard', 
-      icon: FaHome 
+    {
+      name: "Activos",
+      path:
+        user && user.type === "admin"
+          ? "/admin/dashboard"
+          : user && user.type === "tecnico"
+          ? "/tecnico/dashboard"
+          : "/dashboard",
+      icon: FaHome,
     },
-    { name: 'Mantenimientos', path: '/mantenimientos', icon: FaTools },
+    { name: "Mantenimientos", path: "/mantenimientos", icon: FaTools },
   ];
 
   return (
@@ -32,12 +37,14 @@ const Header = () => {
         <div className="menu-icon" onClick={() => setIsOpen(!isOpen)}>
           <FaBars />
         </div>
-        <ul className={isOpen ? 'nav-menu active' : 'nav-menu'}>
+        <ul className={isOpen ? "nav-menu active" : "nav-menu"}>
           {navItems.map((item) => (
             <li key={item.name} className="nav-item">
               <Link
                 to={item.path}
-                className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                className={`nav-link ${
+                  location.pathname === item.path ? "active" : ""
+                }`}
                 onClick={() => setIsOpen(false)}
               >
                 <item.icon className="nav-icon" />
@@ -118,7 +125,7 @@ const Header = () => {
         }
 
         .nav-link.active {
-          background-color:rgb(72, 136, 175);
+          background-color: rgb(72, 136, 175);
         }
 
         .nav-icon {
@@ -163,11 +170,15 @@ const Header = () => {
           }
 
           .nav-menu.active {
-            background: #2563eb;
+            background: rgb(72, 136, 175);
             left: 0;
             opacity: 1;
             transition: all 0.5s ease;
             z-index: 1;
+          }
+          .nav-link:hover {
+            background-color: #669bbc;
+            transition: all 0.2s ease-out;
           }
 
           .nav-item {
@@ -176,7 +187,7 @@ const Header = () => {
 
           .nav-link {
             text-align: center;
-            padding: 2rem;
+            padding: 1rem;
             width: 100%;
             display: table;
           }
@@ -198,4 +209,3 @@ const Header = () => {
 };
 
 export default Header;
-
