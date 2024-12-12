@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Snackbar, Alert } from '@mui/material';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import ExcelComponent from "./ExcelComponent";
 
 const ActivosTable = () => {
+  const [isEdited, setIsEdited] = useState(false);
   const [activos, setActivos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,7 +22,10 @@ const ActivosTable = () => {
   const [activoToEdit, setActivoToEdit] = useState(null);
   const [updatedActivo, setUpdatedActivo] = useState({});
   const user = JSON.parse(localStorage.getItem("user"));
-
+  const [alertMessage, setAlertMessage] = useState(""); 
+  const [alertSeverity, setAlertSeverity] = useState(""); 
+  const [showAlert, setShowAlert] = useState(false);
+  
 
   // Fetch activos y proveedores
   useEffect(() => {
@@ -103,51 +108,70 @@ const ActivosTable = () => {
   };
 
   const handleEdit = (activo) => {
+    setIsEdited(false);
     setActivoToEdit(activo);
     setUpdatedActivo({ ...activo });
   };
 
   const handleUpdateChange = (e) => {
+    const { name, value } = e.target;
+
     setUpdatedActivo({
       ...updatedActivo,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
+
+    if (activoToEdit[name] !== value) {
+      setIsEdited(true);
+    } else {
+      setIsEdited(false); 
+    }
   };
+  
 
   const handleUpdate = async () => {
+    if (!isEdited) {
+      setAlertMessage("Debe editar al menos un campo antes de guardar.");
+      setAlertSeverity("warning");
+      setShowAlert(true);
+      return;
+    }
+  
     try {
       await axios.put(
         `http://localhost:3000/api/activos/${activoToEdit.ID_ACT}`,
         updatedActivo
       );
+  
       const updatedActivos = activos.map((activo) =>
         activo.ID_ACT === activoToEdit.ID_ACT ? { ...updatedActivo } : activo
       );
       setActivos(updatedActivos);
-
-      const activosRes = await axios.get("http://localhost:3000/api/activos");
-      setActivos(activosRes.data);
-
+  
       setActivoToEdit(null);
+      setAlertMessage("Activo actualizado correctamente");
+      setAlertSeverity("success");
+      setShowAlert(true);
     } catch (err) {
       setError("Error al actualizar el activo.");
+      setAlertMessage("Hubo un error al actualizar el activo");
+      setAlertSeverity("error");
+      setShowAlert(true);
     }
   };
+  
 
   return (
     <div className="container-fluid my-5">
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <div className="d-flex align-items-center">
+          {user && user.type === 'admin' && (
+            <ExcelComponent onDataUpload={handleDataUpload} />
+          )}
+        </div>
+      </div>
       <div style={{ backgroundColor: "#efefef" }} className="card p-4">
         <header className="mb-4">
-          <div className="d-flex justify-content-between align-items-center">
-            <h1 className="h4 mb-0">Tabla de Activos</h1>
-            <div className="d-flex align-items-center">
-              {user && user.type === 'admin' && (
-                <ExcelComponent onDataUpload={handleDataUpload} />
-              )}
-
-            </div>
-          </div>
-
           {/* Barra de búsqueda y selectores */}
           <div className="d-flex gap-3 mb-4" style={{ maxWidth: "800px" }}>
             <input
@@ -270,15 +294,19 @@ const ActivosTable = () => {
             <div className="modal-dialog">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">Editar Activo</h5>
+                  <h5 className="modal-title mb-1">Editar Activo</h5>
                   <button
                     type="button"
                     className="btn-close"
-                    onClick={() => setActivoToEdit(null)}
+                    onClick={() => {
+                      setActivoToEdit(null);
+                      setIsEdited(false);
+                    }}
                     aria-label="Cerrar"
                   ></button>
                 </div>
                 <div className="modal-body">
+                <p className="mb-2" style={{ padding: '5px' }}>Modifique los detalles del activo y guarde cambios.</p>
                   <div className="mb-3">
                     <label className="form-label">Nombre</label>
                     <input
@@ -375,19 +403,20 @@ const ActivosTable = () => {
                   </div>
                 </div>
                 <div className="modal-footer">
-                  <button
+                  {/* <button
                     type="button"
                     className="btn btn-secondary"
                     onClick={() => setActivoToEdit(null)}
                   >
                     Cerrar
-                  </button>
+                  </button> */}
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="btn btn-dark w-100"
                     onClick={handleUpdate}
+                    disabled={!isEdited}
                   >
-                    Actualizar
+                    Guardar Cambios
                   </button>
                 </div>
               </div>
@@ -426,6 +455,21 @@ const ActivosTable = () => {
           </button>
         </div>
       </div>
+            {showAlert && (
+        <Snackbar
+          open={showAlert}
+          autoHideDuration={6000}
+          onClose={() => setShowAlert(false)}
+        >
+          <Alert 
+            onClose={() => setShowAlert(false)} 
+            severity={alertSeverity} 
+            sx={{ width: '100%' }}
+          >
+            {alertMessage}
+          </Alert>
+        </Snackbar>
+      )}
     </div>
   );
 };

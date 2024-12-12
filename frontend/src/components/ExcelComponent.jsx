@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import { Snackbar, Alert } from '@mui/material';
 import * as XLSX from "xlsx";
 
 const ExcelComponent = ({ onDataUpload }) => {
@@ -21,6 +22,11 @@ const ExcelComponent = ({ onDataUpload }) => {
     ID_PRO: "",
     PC_ACT: "",
   });
+  const [alertMessage, setAlertMessage] = useState(""); 
+  const [alertSeverity, setAlertSeverity] = useState("");
+  const [showAlert, setShowAlert] = useState(false);
+  
+
   const expectedFields = [
     "NOM_ACT",
     "MAR_ACT",
@@ -54,7 +60,9 @@ const ExcelComponent = ({ onDataUpload }) => {
   const handleFileUpload = async (e) => {
     e.preventDefault();
     if (!formData.PC_ACT) {
-      alert("El campo 'Proceso de compra' es obligatorio.");
+      setAlertMessage("El campo 'Proceso de compra' es obligatorio.");
+      setAlertSeverity("error"); 
+      setShowAlert(true);
       return;
     }
 
@@ -89,7 +97,9 @@ const ExcelComponent = ({ onDataUpload }) => {
         console.error("Error leyendo el archivo", error);
       }
     } else {
-      alert("No has seleccionado un archivo");
+      setAlertMessage("No has seleccionado un archivo.");
+      setAlertSeverity("error"); 
+      setShowAlert(true);
     }
   };
 
@@ -108,25 +118,34 @@ const ExcelComponent = ({ onDataUpload }) => {
       };
     });
     console.log("Datos a enviar:", activos);
-
+  
     try {
       const response = await axios.post(
         "http://localhost:3000/api/activos/excel",
         activos
       );
       console.log("Respuesta de la API:", response.data);
-      alert("Datos cargados exitosamente");
-      onDataUpload();
-      handleCloseModal();
+  
+      if (response.data && response.data.message) {
+        setAlertMessage(response.data.message);
+        setAlertSeverity("success"); 
+        setShowAlert(true);
+        onDataUpload();
+        handleCloseModal();
+      } else {
+        setAlertMessage("Error en la carga de datos");
+        setAlertSeverity("error"); 
+        setShowAlert(true);
+        onDataUpload();
+        handleCloseModal();
+      }
     } catch (error) {
-      console.error(
-        "Error al cargar el archivo Excel:",
-        error.response ? error.response.data : error.message
-      );
-      alert("Hubo un error al cargar los activos");
+      setAlertMessage("Hubo un error al cargar los activos");
+      setAlertSeverity("error");
+      setShowAlert(true); 
     }
   };
-
+  
   const handleCloseModal = () => {
     setFile(null);
     setExcelData([]);
@@ -184,45 +203,55 @@ const ExcelComponent = ({ onDataUpload }) => {
         "http://localhost:3000/api/activos/individual",
         formData
       );
-      console.log("Respuesta de la API:", response.data);
-      alert("Activo subido exitosamente");
+      setAlertMessage("Activo subido exitosamente");
+      setAlertSeverity("success");
+      setShowAlert(true);
       onDataUpload();
       handleCloseModal();
     } catch (error) {
-      console.error(
-        "Error al subir el activo:",
-        error.response ? error.response.data : error.message
-      );
-      alert("Hubo un error al subir el activo");
+      setAlertMessage("Hubo un error al subir el activo");
+      setAlertSeverity("error");
+      setShowAlert(true);
+      
     }
   };
-
+  
   return (
-    <div className="d-flex align-items-center">
-      <button
-        className="btn btn-primary ms-3 d-flex align-items-center"
-        onClick={() => setShowModal(true)}
-      >
-        Subir Activos
-      </button>
+      <div className="d-flex align-items-center">
+        <button
+          className="btn btn-primary ms-3 d-flex align-items-center"
+          onClick={() => setShowModal(true)}
+        > 
+          <i className="bi bi-plus-circle me-2"></i> Agregar Nuevo Activo
+        </button>
 
       {showModal && (
         <div
-          className="modal show"
-          style={{ display: "block" }}
-          tabIndex="-1"
+        className="modal show"
+        style={{
+          display: "block",
+          backgroundColor: "rgba(0, 0, 0, 0.5)",
+        }}
+        tabIndex="-1"
           aria-hidden="true"
         >
           <div className="modal-dialog">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">
-                  {step === 0
-                    ? "Elija una opción"
-                    : step === 1
-                    ? "Subir Activo"
-                    : "Seleccionar archivo Excel"}
-                </h5>
+                <div className="w-100">
+                  <h5 className="modal-title text-center">
+                    {step === 0
+                      ? "Agregar Nuevo Activo"
+                      : step === 1
+                      ? "Subir Activo"
+                      : "Seleccionar archivo Excel"}
+                  </h5>
+                  {step === 0 && (
+                    <p className="text-muted mt-2">
+                      Añada un nuevo activo individualmente o cargue un archivo Excel.
+                    </p>
+                  )}
+                </div>
                 <button
                   type="button"
                   className="btn-close"
@@ -233,19 +262,38 @@ const ExcelComponent = ({ onDataUpload }) => {
               <div className="modal-body">
                 {step === 0 && (
                   <div className="d-flex flex-column">
-                    <button
-                      className="btn btn-primary mb-3"
-                      onClick={() => setStep(1)}
-                    >
-                      Subir Activo
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => setStep(2)}
-                    >
-                      Subir Archivo Excel
-                    </button>
+                    <div className="d-flex justify-content-between mb-3">
+                      <button
+                        className="btn btn-white me-3"
+                        onClick={() => setStep(1)}
+                        style={{
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                          padding:  "8px 10px",
+                          fontSize: "15px",
+                          width: "48%", 
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                        }}
+                      >
+                        Subir Activo
+                      </button>
+                      <button
+                        className="btn btn-white"
+                        onClick={() => setStep(2)}
+                        style={{
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                          padding: "8px 10px",
+                          fontSize: "15px",
+                          width: "48%", 
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                        }}
+                      >
+                        Subir Archivo
+                      </button>
+                    </div>
                   </div>
+
                 )}
                 {step === 1 && (
                   <form>
@@ -311,6 +359,7 @@ const ExcelComponent = ({ onDataUpload }) => {
                         value={formData.CAT_ACT || ""}
                         onChange={handleInputChange}
                       >
+                        <option value="">Seleccione la categoría</option>                        
                         <option value="informático">Informático</option>
                         <option value="mueble">Mueble</option>
                         <option value="electrónico">Electrónico</option>
@@ -347,6 +396,7 @@ const ExcelComponent = ({ onDataUpload }) => {
                         value={formData.UBI_ACT || ""}
                         onChange={handleInputChange}
                       >
+                        <option value="">Seleccione la ubicacion</option>
                         <option value="Laboratorio A">Laboratorio A</option>
                         <option value="Laboratorio B">Laboratorio B</option>
                         <option value="Laboratorio C">Laboratorio C</option>
@@ -366,6 +416,7 @@ const ExcelComponent = ({ onDataUpload }) => {
                         value={formData.EST_ACT || ""}
                         onChange={handleInputChange}
                       >
+                        <option value="">Seleccione el estado</option>
                         <option value="disponible">Disponible</option>
                         <option value="mantenimiento">Mantenimiento</option>
                         <option value="asignado">Asignado</option>
@@ -392,11 +443,13 @@ const ExcelComponent = ({ onDataUpload }) => {
                     </div>
                     <button
                       type="button"
-                      className="btn btn-success"
+                      className="btn btn-dark w-100" 
                       onClick={handleSubmitForm}
+                      disabled={expectedFields.some((field) => !formData[field])}
                     >
-                      Subir Activo
+                      Guardar Activo
                     </button>
+
                   </form>
                 )}
                 {step === 2 && !showPreview && (
@@ -421,44 +474,59 @@ const ExcelComponent = ({ onDataUpload }) => {
                       className="form-control"
                       accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     />
-                    <button className="btn btn-success mt-3" type="submit">
-                      Subir archivo
+                    <button
+                      className="btn mt-3"
+                      type="submit"
+                      style={{
+                        borderRadius: "5px",
+                        padding: "8px 10px",
+                        fontSize: "15px",
+                        width: "100%",
+                        backgroundColor: "black",
+                        color: "white",
+                      }}
+                    >
+                    <i className="bi bi-upload" style={{ marginRight: "8px" }}></i>
+                    Cargar Archivo
                     </button>
                   </form>
                 )}
                 {step === 2 && showPreview && (
                   <div>
                     <h5>Vista previa de los datos</h5>
-                    <table className="table table-bordered">
-                      <thead>
-                        <tr>
-                          {excelData.headers.map((col, index) => (
-                            <th key={index}>{col}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {excelData.rows.map((row, rowIndex) => (
-                          <tr key={rowIndex}>
-                            {row.map((cell, cellIndex) => (
-                              <td key={cellIndex}>{cell}</td>
+                    <div className="table-responsive">
+                      <table className="table table-bordered">
+                        <thead>
+                          <tr>
+                            {excelData.headers.map((col, index) => (
+                              <th key={index}>{col}</th>
                             ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {excelData.rows.map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                              {row.map((cell, cellIndex) => (
+                                <td key={cellIndex}>{cell}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                     <button
-                      className="btn btn-success"
+                      className="btn btn-success  btn btn-dark w-100"
                       onClick={handleConfirmUpload}
+                      
                     >
                       Confirmar Carga
                     </button>
-                    <button
+                    {/* <button
                       className="btn btn-secondary ml-2"
                       onClick={handleCloseModal}
                     >
                       Cancelar
-                    </button>
+                    </button> */}
                   </div>
                 )}
               </div>
@@ -466,7 +534,21 @@ const ExcelComponent = ({ onDataUpload }) => {
           </div>
         </div>
       )}
-    </div>
+          {showAlert && (
+        <Snackbar
+          open={showAlert}
+          autoHideDuration={6000}
+          onClose={() => setShowAlert(false)}
+        >
+          <Alert 
+            onClose={() => setShowAlert(false)} 
+            severity={alertSeverity} 
+            sx={{ width: '100%' }}
+          >
+            {alertMessage}
+          </Alert>
+        </Snackbar>
+)}</div>
   );
 };
 
