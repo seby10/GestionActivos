@@ -10,22 +10,23 @@ const App = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
-      <Route path="/public" element={<ActivosTable />} /> {/* Ruta accesible sin autenticación */}
-      <Route path="/admin/dashboard" element={
-        <>
-          <Header />
-          <AdminDashboard />
-          <ActivosTable />
-        </>
-      } />
-      <Route path="/tecnico/dashboard" element={
-        <>
-          <Header />
-          <TecnicoDashboard />
-          <ActivosTable />
-        </>
-      } />
-      <Route path="/" element={<Navigate replace to="/login" />} /> {/* Redirección por defecto a login */}
+      <Route
+        path="/admin/dashboard"
+        element={
+          <ProtectedRoute>
+            <AdminDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/tecnico/dashboard"
+        element={
+          <ProtectedRoute>
+            <TecnicoDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/" element={<Navigate replace to="/login" />} />
     </Routes>
   );
 };
