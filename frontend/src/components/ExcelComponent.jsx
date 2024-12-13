@@ -316,7 +316,7 @@ const ExcelComponent = ({ onDataUpload }) => {
                           boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
                         }}
                       >
-                        Subir Archivo
+                        Subir Por Lote
                       </button>
                     </div>
                   </div>

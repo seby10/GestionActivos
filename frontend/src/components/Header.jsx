@@ -35,13 +35,12 @@ const Header = () => {
       path:
         user && user.type === "admin"
           ? "/admin/dashboard"
-          : user && user.type === "tecnico"
-          ? "/tecnico/dashboard"
-          : "/dashboard",
+          : "/tecnico/dashboard",
       icon: FaHome,
     },
     { name: "Mantenimientos", path: "/mantenimientos", icon: FaTools },
   ];
+  
 
   return (
     <nav className="header">
