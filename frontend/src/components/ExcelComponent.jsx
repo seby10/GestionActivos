@@ -70,7 +70,8 @@ const ExcelComponent = ({ onDataUpload }) => {
 
   const handleFileUpload = async (e) => {
     e.preventDefault();
-    if (!formData.PC_ACT) {
+    const regex = /^PC\d+$/;
+    if (!regex.test(formData.PC_ACT)) {
       setAlertMessage("El campo 'Proceso de compra' es obligatorio.");
       setAlertSeverity("error"); 
       setShowAlert(true);
@@ -207,8 +208,22 @@ const ExcelComponent = ({ onDataUpload }) => {
       });
     }
   };
-
   const handleSubmitForm = async () => {
+    if (requiredFormFields.some((field) => !formData[field])) {
+      setAlertMessage("Por favor, completa todos los campos requeridos");
+      setAlertSeverity("error");
+      setShowAlert(true);
+      return;
+    }
+  
+    const regex = /^PC\d+$/; 
+    if (!regex.test(formData.PC_ACT)) {
+      setAlertMessage("El número de la PC debe tener el formato 'PC' seguido de un número");
+      setAlertSeverity("error");
+      setShowAlert(true);
+      return;
+    }
+  
     try {
       const response = await axios.post(
         "http://localhost:3000/api/activos/individual",
@@ -220,12 +235,13 @@ const ExcelComponent = ({ onDataUpload }) => {
       onDataUpload();
       handleCloseModal();
     } catch (error) {
-      setAlertMessage("Hubo un error al subir el activo");
+      const errorMessage = error.response?.data?.message || "Error desconocido";
+      setAlertMessage(`Hubo un error: ${errorMessage}`);
       setAlertSeverity("error");
       setShowAlert(true);
-      
     }
   };
+  
   
   return (
       <div className="d-flex align-items-center">
@@ -456,7 +472,8 @@ const ExcelComponent = ({ onDataUpload }) => {
                       type="button"
                       className="btn btn-dark w-100" 
                       onClick={handleSubmitForm}
-                      disabled={requiredFormFields.some((field) => !formData[field])}
+                      disabled={requiredFormFields.some((field) => !formData[field]) ||
+                        !/^PC\d+$/.test(formData.PC_ACT) }
                     >
                       Guardar Activo
                     </button>
