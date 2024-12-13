@@ -1,13 +1,28 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { FaHome, FaTools, FaBars, FaSignOutAlt } from "react-icons/fa";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button,
+} from "@mui/material";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
-
+  const [openDialog, setOpenDialog] = useState(false);
+  const handleLogoutConfirm = () => {
+    setOpenDialog(false);
+    handleLogout();
+  };
+  const handleLogoutCancel = () => {
+    setOpenDialog(false);
+  };
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -53,11 +68,36 @@ const Header = () => {
             </li>
           ))}
           <li className="nav-item">
-            <button onClick={handleLogout} className="logout-button">
+            <button
+              onClick={() => setOpenDialog(true)}
+              className="logout-button"
+            >
               <FaSignOutAlt className="nav-icon" />
               <span>Cerrar sesión</span>
             </button>
           </li>
+
+          <Dialog
+            open={openDialog}
+            onClose={handleLogoutCancel}
+            aria-labelledby="logout-dialog-title"
+            aria-describedby="logout-dialog-description"
+          >
+            <DialogTitle id="logout-dialog-title">Confirmación</DialogTitle>
+            <DialogContent>
+              <DialogContentText id="logout-dialog-description">
+                ¿Estás seguro de que deseas cerrar sesión?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleLogoutCancel} color="primary">
+                Cancelar
+              </Button>
+              <Button onClick={handleLogoutConfirm} color="secondary" autoFocus>
+                Confirmar
+              </Button>
+            </DialogActions>
+          </Dialog>
         </ul>
       </div>
 

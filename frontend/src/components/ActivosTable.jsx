@@ -359,30 +359,30 @@ const ActivosTable = () => {
                       value={updatedActivo.CAT_ACT || ""}
                       onChange={handleUpdateChange}
                     >
-                      <option value="informático">Informático</option>
-                      <option value="mueble">Mueble</option>
-                      <option value="electrónico">Electrónico</option>
-                      <option value="vehículo">Vehículo</option>
-                      <option value="mobiliario de oficina">
+                      <option value="Informático">Informático</option>
+                      <option value="Mueble">Mueble</option>
+                      <option value="Electrónico">Electrónico</option>
+                      <option value="Vehículo">Vehículo</option>
+                      <option value="Mobiliario de Oficina">
                         Mobiliario de Oficina
                       </option>
-                      <option value="herramienta">Herramienta</option>
-                      <option value="equipamiento médico">
+                      <option value="Herramienta">Herramienta</option>
+                      <option value="Equipamiento Médico">
                         Equipamiento Médico
                       </option>
-                      <option value="equipos de comunicación">
+                      <option value="Equipos de Comunicación">
                         Equipos de Comunicación
                       </option>
-                      <option value="instrumento de laboratorio">
+                      <option value="Instrumento de Laboratorio">
                         Instrumento de Laboratorio
                       </option>
-                      <option value="equipo de producción">
+                      <option value="Equipo de Producción">
                         Equipo de Producción
                       </option>
-                      <option value="equipo de seguridad">
+                      <option value="Equipo de Seguridad">
                         Equipo de Seguridad
                       </option>
-                      <option value="otros">Otros</option>
+                      <option value="Otros">Otros</option>
                     </select>
                   </div>
                   <div className="mb-3">

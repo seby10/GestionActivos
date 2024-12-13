@@ -27,7 +27,7 @@ const ExcelComponent = ({ onDataUpload }) => {
   const [showAlert, setShowAlert] = useState(false);
   
 
-  const expectedFields = [
+  const expectedExcelFields = [
     "NOM_ACT",
     "MAR_ACT",
     "MOD_ACT",
@@ -35,6 +35,17 @@ const ExcelComponent = ({ onDataUpload }) => {
     "UBI_ACT",
     "EST_ACT",
     "ID_PRO",
+  ];
+
+  const requiredFormFields = [
+    "NOM_ACT",
+    "MAR_ACT",
+    "MOD_ACT",
+    "CAT_ACT",
+    "UBI_ACT",
+    "EST_ACT",
+    "ID_PRO",
+    "PC_ACT",
   ];
   useEffect(() => {
     const fetchData = async () => {
@@ -79,7 +90,7 @@ const ExcelComponent = ({ onDataUpload }) => {
           const actualFields = jsonData[0];
           console.log("Primera fila del archivo:", actualFields);
 
-          const missingFields = expectedFields.filter(
+          const missingFields = expectedExcelFields.filter(
             (field) => !actualFields.includes(field)
           );
           if (missingFields.length > 0) {
@@ -445,7 +456,7 @@ const ExcelComponent = ({ onDataUpload }) => {
                       type="button"
                       className="btn btn-dark w-100" 
                       onClick={handleSubmitForm}
-                      disabled={expectedFields.some((field) => !formData[field])}
+                      disabled={requiredFormFields.some((field) => !formData[field])}
                     >
                       Guardar Activo
                     </button>
