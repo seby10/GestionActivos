@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Snackbar, Alert } from '@mui/material';
+import { Snackbar, Alert } from "@mui/material";
 import * as XLSX from "xlsx";
 
 const ExcelComponent = ({ onDataUpload }) => {
@@ -13,24 +13,23 @@ const ExcelComponent = ({ onDataUpload }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
+    COD_ACT: "",
     NOM_ACT: "",
     MAR_ACT: "",
-    MOD_ACT: "",
     CAT_ACT: "",
     UBI_ACT: "",
     EST_ACT: "",
     ID_PRO: "",
     PC_ACT: "",
   });
-  const [alertMessage, setAlertMessage] = useState(""); 
+  const [alertMessage, setAlertMessage] = useState("");
   const [alertSeverity, setAlertSeverity] = useState("");
   const [showAlert, setShowAlert] = useState(false);
-  
 
   const expectedExcelFields = [
+    "COD_ACT",
     "NOM_ACT",
     "MAR_ACT",
-    "MOD_ACT",
     "CAT_ACT",
     "UBI_ACT",
     "EST_ACT",
@@ -38,9 +37,9 @@ const ExcelComponent = ({ onDataUpload }) => {
   ];
 
   const requiredFormFields = [
+    "COD_ACT",
     "NOM_ACT",
     "MAR_ACT",
-    "MOD_ACT",
     "CAT_ACT",
     "UBI_ACT",
     "EST_ACT",
@@ -73,7 +72,7 @@ const ExcelComponent = ({ onDataUpload }) => {
     const regex = /^PC\d+$/;
     if (!regex.test(formData.PC_ACT)) {
       setAlertMessage("El campo 'Proceso de compra' es obligatorio.");
-      setAlertSeverity("error"); 
+      setAlertSeverity("error");
       setShowAlert(true);
       return;
     }
@@ -110,7 +109,7 @@ const ExcelComponent = ({ onDataUpload }) => {
       }
     } else {
       setAlertMessage("No has seleccionado un archivo.");
-      setAlertSeverity("error"); 
+      setAlertSeverity("error");
       setShowAlert(true);
     }
   };
@@ -119,9 +118,9 @@ const ExcelComponent = ({ onDataUpload }) => {
     const activos = excelData.rows.map((row, index) => {
       console.log(`Fila ${index}:`, row);
       return {
-        NOM_ACT: row[0],
-        MAR_ACT: row[1],
-        MOD_ACT: row[2],
+        COD_ACT: row[0],
+        NOM_ACT: row[1],
+        MAR_ACT: row[2],
         CAT_ACT: row[3],
         UBI_ACT: row[4],
         EST_ACT: row[5],
@@ -130,23 +129,23 @@ const ExcelComponent = ({ onDataUpload }) => {
       };
     });
     console.log("Datos a enviar:", activos);
-  
+
     try {
       const response = await axios.post(
         "http://localhost:3000/api/activos/excel",
         activos
       );
       console.log("Respuesta de la API:", response.data);
-  
+
       if (response.data && response.data.message) {
         setAlertMessage(response.data.message);
-        setAlertSeverity("success"); 
+        setAlertSeverity("success");
         setShowAlert(true);
         onDataUpload();
         handleCloseModal();
       } else {
         setAlertMessage("Error en la carga de datos");
-        setAlertSeverity("error"); 
+        setAlertSeverity("error");
         setShowAlert(true);
         onDataUpload();
         handleCloseModal();
@@ -154,10 +153,10 @@ const ExcelComponent = ({ onDataUpload }) => {
     } catch (error) {
       setAlertMessage("Hubo un error al cargar los activos");
       setAlertSeverity("error");
-      setShowAlert(true); 
+      setShowAlert(true);
     }
   };
-  
+
   const handleCloseModal = () => {
     setFile(null);
     setExcelData([]);
@@ -165,9 +164,9 @@ const ExcelComponent = ({ onDataUpload }) => {
     setShowPreview(false);
     setStep(0);
     setFormData({
+      COD_ACT: "",
       NOM_ACT: "",
       MAR_ACT: "",
-      MOD_ACT: "",
       CAT_ACT: "",
       UBI_ACT: "",
       EST_ACT: "",
@@ -215,15 +214,17 @@ const ExcelComponent = ({ onDataUpload }) => {
       setShowAlert(true);
       return;
     }
-  
-    const regex = /^PC\d+$/; 
+
+    const regex = /^PC\d+$/;
     if (!regex.test(formData.PC_ACT)) {
-      setAlertMessage("El número de la PC debe tener el formato 'PC' seguido de un número");
+      setAlertMessage(
+        "El número de la PC debe tener el formato 'PC' seguido de un número"
+      );
       setAlertSeverity("error");
       setShowAlert(true);
       return;
     }
-  
+
     try {
       const response = await axios.post(
         "http://localhost:3000/api/activos/individual",
@@ -241,25 +242,24 @@ const ExcelComponent = ({ onDataUpload }) => {
       setShowAlert(true);
     }
   };
-  
-  
+
   return (
-      <div className="d-flex align-items-center">
-        <button
-          className="btn btn-primary ms-3 d-flex align-items-center"
-          onClick={() => setShowModal(true)}
-        > 
-          <i className="bi bi-plus-circle me-2"></i> Agregar Nuevo Activo
-        </button>
+    <div className="d-flex align-items-center">
+      <button
+        className="btn btn-primary ms-3 d-flex align-items-center"
+        onClick={() => setShowModal(true)}
+      >
+        <i className="bi bi-plus-circle me-2"></i> Agregar Nuevo Activo
+      </button>
 
       {showModal && (
         <div
-        className="modal show"
-        style={{
-          display: "block",
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-        }}
-        tabIndex="-1"
+          className="modal show"
+          style={{
+            display: "block",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+          }}
+          tabIndex="-1"
           aria-hidden="true"
         >
           <div className="modal-dialog">
@@ -275,7 +275,8 @@ const ExcelComponent = ({ onDataUpload }) => {
                   </h5>
                   {step === 0 && (
                     <p className="text-muted mt-2">
-                      Añada un nuevo activo individualmente o cargue un archivo Excel.
+                      Añada un nuevo activo individualmente o cargue un archivo
+                      Excel.
                     </p>
                   )}
                 </div>
@@ -296,9 +297,9 @@ const ExcelComponent = ({ onDataUpload }) => {
                         style={{
                           border: "1px solid #ccc",
                           borderRadius: "5px",
-                          padding:  "8px 10px",
+                          padding: "8px 10px",
                           fontSize: "15px",
-                          width: "48%", 
+                          width: "48%",
                           boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
                         }}
                       >
@@ -312,7 +313,7 @@ const ExcelComponent = ({ onDataUpload }) => {
                           borderRadius: "5px",
                           padding: "8px 10px",
                           fontSize: "15px",
-                          width: "48%", 
+                          width: "48%",
                           boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
                         }}
                       >
@@ -320,10 +321,22 @@ const ExcelComponent = ({ onDataUpload }) => {
                       </button>
                     </div>
                   </div>
-
                 )}
                 {step === 1 && (
                   <form>
+                    <div className="mb-3">
+                      <label htmlFor="COD_ACT" className="form-label">
+                        Código de Activo
+                      </label>
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="COD_ACT"
+                        name="COD_ACT"
+                        value={formData.COD_ACT}
+                        onChange={handleInputChange}
+                      />
+                    </div>
                     <div className="mb-3">
                       <label htmlFor="PC_ACT" className="form-label">
                         Proceso de compra
@@ -351,31 +364,49 @@ const ExcelComponent = ({ onDataUpload }) => {
                       />
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="MAR_ACT" className="form-label">
-                        Marca del activo
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="MAR_ACT"
+                      <label htmlFor="MAR_ACT">Marca del Activo</label>
+                      <select
                         name="MAR_ACT"
-                        value={formData.MAR_ACT}
+                        className="form-select"
+                        value={formData.MAR_ACT || ""}
                         onChange={handleInputChange}
-                      />
+                        required
+                      >
+                        <option value="">Seleccione la Marca</option>
+                        <option value="Apple">Apple</option>
+                        <option value="Samsung">Samsung</option>
+                        <option value="Sony">Sony</option>
+                        <option value="Lenovo">Lenovo</option>
+                        <option value="Dell">Dell</option>
+                        <option value="HP">HP</option>
+                        <option value="Acer">Acer</option>
+                        <option value="Asus">Asus</option>
+                        <option value="Toshiba">Toshiba</option>
+                        <option value="LG">LG</option>
+                        <option value="Huawei">Huawei</option>
+                        <option value="Xiaomi">Xiaomi</option>
+                        <option value="Bosch">Bosch</option>
+                        <option value="Makita">Makita</option>
+                        <option value="Caterpillar">Caterpillar</option>
+                        <option value="Ford">Ford</option>
+                        <option value="Chevrolet">Chevrolet</option>
+                        <option value="Toyota">Toyota</option>
+                        <option value="Honda">Honda</option>
+                        <option value="General Electric">
+                          General Electric
+                        </option>
+                        <option value="3M">3M</option>
+                        <option value="Philips">Philips</option>
+                        <option value="Panasonic">Panasonic</option>
+                        <option value="Siemens">Siemens</option>
+                        <option value="IBM">IBM</option>
+                        <option value="Cisco">Cisco</option>
+                        <option value="Intel">Intel</option>
+                        <option value="AMD">AMD</option>
+                        <option value="Otros">Otros</option>
+                      </select>
                     </div>
-                    <div className="mb-3">
-                      <label htmlFor="MOD_ACT" className="form-label">
-                        Modelo del activo
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        id="MOD_ACT"
-                        name="MOD_ACT"
-                        value={formData.MOD_ACT}
-                        onChange={handleInputChange}
-                      />
-                    </div>
+
                     <div className="mb-3">
                       <label htmlFor="CAT_ACT" className="form-label">
                         Categoría activo
@@ -386,7 +417,7 @@ const ExcelComponent = ({ onDataUpload }) => {
                         value={formData.CAT_ACT || ""}
                         onChange={handleInputChange}
                       >
-                        <option value="">Seleccione la categoría</option>                        
+                        <option value="">Seleccione la Categoría</option>
                         <option value="informático">Informático</option>
                         <option value="mueble">Mueble</option>
                         <option value="electrónico">Electrónico</option>
@@ -423,7 +454,7 @@ const ExcelComponent = ({ onDataUpload }) => {
                         value={formData.UBI_ACT || ""}
                         onChange={handleInputChange}
                       >
-                        <option value="">Seleccione la ubicacion</option>
+                        <option value="">Seleccione la Ubicación</option>
                         <option value="Laboratorio A">Laboratorio A</option>
                         <option value="Laboratorio B">Laboratorio B</option>
                         <option value="Laboratorio C">Laboratorio C</option>
@@ -431,6 +462,20 @@ const ExcelComponent = ({ onDataUpload }) => {
                         <option value="Aula 1">Aula 1</option>
                         <option value="Aula 2">Aula 2</option>
                         <option value="Aula 3">Aula 3</option>
+                        <option value="Aula 4">Aula 4</option>
+                        <option value="Oficina Principal">
+                          Oficina Principal
+                        </option>
+                        <option value="Oficina Secundaria">
+                          Oficina Secundaria
+                        </option>
+                        <option value="Sala de Juntas">Sala de Juntas</option>
+                        <option value="Almacén">Almacén</option>
+                        <option value="Taller">Taller</option>
+                        <option value="Recepción">Recepción</option>
+                        <option value="Pasillo Principal">
+                          Pasillo Principal
+                        </option>
                       </select>
                     </div>
                     <div className="mb-3">
@@ -444,9 +489,9 @@ const ExcelComponent = ({ onDataUpload }) => {
                         onChange={handleInputChange}
                       >
                         <option value="">Seleccione el estado</option>
-                        <option value="disponible">Disponible</option>
-                        <option value="mantenimiento">Mantenimiento</option>
-                        <option value="asignado">Asignado</option>
+                        <option value="Disponible">Disponible</option>
+                      <option value="En Mantenimiento">Mantenimiento</option>
+                      <option value="Nuevo">Nuevo</option>
                       </select>
                     </div>
                     <div className="mb-3">
@@ -462,7 +507,10 @@ const ExcelComponent = ({ onDataUpload }) => {
                       >
                         <option value="">Seleccione un proveedor</option>
                         {proveedores.map((proveedor) => (
-                          <option key={proveedor.ID_PRO} value={proveedor.ID_PRO}>
+                          <option
+                            key={proveedor.ID_PRO}
+                            value={proveedor.ID_PRO}
+                          >
                             {proveedor.NOM_PRO}
                           </option>
                         ))}
@@ -470,14 +518,15 @@ const ExcelComponent = ({ onDataUpload }) => {
                     </div>
                     <button
                       type="button"
-                      className="btn btn-dark w-100" 
+                      className="btn btn-dark w-100"
                       onClick={handleSubmitForm}
-                      disabled={requiredFormFields.some((field) => !formData[field]) ||
-                        !/^PC\d+$/.test(formData.PC_ACT) }
+                      disabled={
+                        requiredFormFields.some((field) => !formData[field]) ||
+                        !/^PC\d+$/.test(formData.PC_ACT)
+                      }
                     >
                       Guardar Activo
                     </button>
-
                   </form>
                 )}
                 {step === 2 && !showPreview && (
@@ -514,8 +563,11 @@ const ExcelComponent = ({ onDataUpload }) => {
                         color: "white",
                       }}
                     >
-                    <i className="bi bi-upload" style={{ marginRight: "8px" }}></i>
-                    Cargar Archivo
+                      <i
+                        className="bi bi-upload"
+                        style={{ marginRight: "8px" }}
+                      ></i>
+                      Cargar Archivo
                     </button>
                   </form>
                 )}
@@ -545,7 +597,6 @@ const ExcelComponent = ({ onDataUpload }) => {
                     <button
                       className="btn btn-success  btn btn-dark w-100"
                       onClick={handleConfirmUpload}
-                      
                     >
                       Confirmar Carga
                     </button>
@@ -562,21 +613,22 @@ const ExcelComponent = ({ onDataUpload }) => {
           </div>
         </div>
       )}
-          {showAlert && (
+      {showAlert && (
         <Snackbar
           open={showAlert}
           autoHideDuration={6000}
           onClose={() => setShowAlert(false)}
         >
-          <Alert 
-            onClose={() => setShowAlert(false)} 
-            severity={alertSeverity} 
-            sx={{ width: '100%' }}
+          <Alert
+            onClose={() => setShowAlert(false)}
+            severity={alertSeverity}
+            sx={{ width: "100%" }}
           >
             {alertMessage}
           </Alert>
         </Snackbar>
-)}</div>
+      )}
+    </div>
   );
 };
 
