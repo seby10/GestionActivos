@@ -6,7 +6,7 @@ import { getUserDetails, login } from '../controllers/authController.js';
 const router = express.Router();
 
 router.post('/login', login);
-router.get('/get-userDetails', getUserDetails);
+router.get('/getUser', getUserDetails);
 
 export default router;
 
