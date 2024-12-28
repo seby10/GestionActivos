@@ -1,82 +1,97 @@
-import { addDetallesMantenimiento, addMantenimiento, finalizarMantenimiento, getActivosByEstado, getDetallesMantenimiento, getMantenimientos, updateActivoEstado } from "../models/mantenimientosModel.js";
+import {
+  addDetallesMantenimiento,
+  addMantenimiento,
+  finalizarMantenimiento,
+  getActivosByEstado,
+  getDetallesMantenimiento,
+  getMantenimientos,
+  updateActivoEstado,
+} from "../models/mantenimientosModel.js";
 
 export const addMantenimientoController = async (req, res) => {
-    const { codigo, nombre, fecha, tecnico, tipoTecnico } = req.body;
-    try {
-      const result = await addMantenimiento({
-        codigo,
-        nombre,
-        fecha,
-        tecnico,
-        tipoTecnico,
-      });
-      res
-        .status(200)
-        .json({ message: "Mantenimiento agregado correctamente", id: result.id });
-    } catch (error) {
-      console.error("Error al agregar el mantenimiento:", error);
-      // Manejar errores específicos
-      if (error.message.includes("código de mantenimiento ya existe")) {
-        return res.status(400).json({
-          message: "El código de mantenimiento ya existe",
-          error: error.message,
-        });
-      }
-      if (error.message.includes("fecha")) {
-        return res.status(400).json({
-          message: "La fecha proporcionada no es válida",
-          error: error.message,
-        });
-      }
-      res.status(500).json({
-        message: "Hubo un error al agregar el mantenimiento",
+  const { codigo, descripcion, fecha, tecnico, tipoTecnico } = req.body;
+  try {
+    const result = await addMantenimiento({
+      codigo,
+      descripcion,
+      fecha,
+      tecnico,
+      tipoTecnico,
+    });
+    res
+      .status(200)
+      .json({ message: "Mantenimiento agregado correctamente", id: result.id });
+  } catch (error) {
+    console.error("Error al agregar el mantenimiento:", error);
+    // Manejar errores específicos
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({
+        message: "El código de mantenimiento ya existe",
         error: error.message,
       });
     }
-  };
-  
-  export const finalizarMantenimientoController = async (req, res) => {
-    const { id } = req.params;
-    try {
-      const result = await finalizarMantenimiento(id);
-      res.status(200).json({ 
-        message: "Mantenimiento y activos asociados actualizados correctamente" 
-      });
-    } catch (error) {
-      console.error("Error al finalizar el mantenimiento:", error);
-      if (error.message.includes("no existe") || error.message.includes("ya está finalizado")) {
-        return res.status(400).json({
-          message: error.message
-        });
-      }
-      res.status(500).json({
-        message: "Hubo un error al finalizar el mantenimiento",
+    if (error.message.includes("fecha")) {
+      return res.status(400).json({
+        message: "La fecha proporcionada no es válida",
         error: error.message,
       });
     }
-  };
-  
-  export const addDetallesMantenimientoController = async (req, res) => {
-    const { id_act, id_mant_per } = req.body;
-    try {
-      const result = await addDetallesMantenimiento({ id_act, id_mant_per });
-      res.status(200).json({
-        message: "Detalle de mantenimiento agregado correctamente",
-        id: result.id,
-      });
-    } catch (error) {
-      console.error("Error al agregar el detalle de mantenimiento:", error);
-      if (error.message.includes("no existe") || error.message.includes("ya se encuentra en mantenimiento")) {
-        return res.status(400).json({
-          message: error.message
-        });
-      }
-      res.status(500).json({
-        message: "Hubo un error al agregar el detalle de mantenimiento",
-        error: error.message,
+    res.status(500).json({
+      message: "Hubo un error al agregar el mantenimiento",
+      error: error.message,
+    });
+  }
+};
+
+
+export const finalizarMantenimientoController = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await finalizarMantenimiento(id);
+    res.status(200).json({
+      message: "Mantenimiento y activos asociados actualizados correctamente",
+    });
+  } catch (error) {
+    console.error("Error al finalizar el mantenimiento:", error);
+    if (
+      error.message.includes("no existe") ||
+      error.message.includes("ya está finalizado")
+    ) {
+      return res.status(400).json({
+        message: error.message,
       });
     }
-  };
+    res.status(500).json({
+      message: "Hubo un error al finalizar el mantenimiento",
+      error: error.message,
+    });
+  }
+};
+
+export const addDetallesMantenimientoController = async (req, res) => {
+  const { id_act, id_mant_per } = req.body;
+  try {
+    const result = await addDetallesMantenimiento({ id_act, id_mant_per });
+    res.status(200).json({
+      message: "Detalle de mantenimiento agregado correctamente",
+      id: result.id,
+    });
+  } catch (error) {
+    console.error("Error al agregar el detalle de mantenimiento:", error);
+    if (
+      error.message.includes("no existe") ||
+      error.message.includes("ya se encuentra en mantenimiento")
+    ) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+    res.status(500).json({
+      message: "Hubo un error al agregar el detalle de mantenimiento",
+      error: error.message,
+    });
+  }
+};
 
 export const getActivosByEstadoController = async (req, res) => {
   try {

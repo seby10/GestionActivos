@@ -1,5 +1,5 @@
 
-import { loginUser, getUserFromToken } from '../models/userModel.js';
+import { loginUser, getUserFromToken, getUsers, getUserById } from '../models/userModel.js';
 
 export const login = async (req, res) => {
     const { email, password, type } = req.body;
@@ -47,3 +47,27 @@ export const getUserDetails = async (req, res) => {
         return res.status(500).json({ success: false, message: 'Failed to retrieve user details' });
     }
 };
+
+export const getUsersController = async (req, res) => {
+    try {
+      const users = await getUsers();
+      res.status(200).json(users);
+    } catch (error) {
+      console.error("Error al obtener usuarios:", error);
+      res.status(500).json({ message: "Error al obtener usuarios." });
+    }
+  };
+  
+  export const getUserByIdController = async (req, res) => {
+    const { id } = req.params;
+    try {
+      const user = await getUserById(id);
+      if (!user) {
+        return res.status(404).json({ message: "Usuario no encontrado." });
+      }
+      res.status(200).json(user);
+    } catch (error) {
+      console.error("Error al obtener usuario:", error);
+      res.status(500).json({ message: "Error al obtener usuario." });
+    }
+  };
