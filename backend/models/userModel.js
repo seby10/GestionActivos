@@ -68,3 +68,28 @@ export const getUserFromToken = async (token) => {
         return { success: false, message: 'Invalid or expired token' };
     }
 };
+
+export const getUsers = async () => {
+    try {
+      const [rows] = await pool.query(
+        "SELECT ID_USU, NOM_USU, COR_USU, TIP_USU FROM USUARIOS"
+      );
+      return rows;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      throw error;
+    }
+  };
+  
+  export const getUserById = async (id) => {
+    try {
+      const [rows] = await pool.query(
+        "SELECT ID_USU, NOM_USU, COR_USU, TIP_USU FROM USUARIOS WHERE ID_USU = ?",
+        [id]
+      );
+      return rows[0];
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      throw error;
+    }
+  };

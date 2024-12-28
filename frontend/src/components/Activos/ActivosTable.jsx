@@ -11,6 +11,7 @@ const ActivosTable = () => {
   const [activos, setActivos] = useState([]);
   const [proveedores, setProveedores] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchCodeQuery, setSearchCodeQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("");
   const [filterLocation, setFilterLocation] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
@@ -60,6 +61,9 @@ const ActivosTable = () => {
   // Filtrar activos por búsqueda y categoría
   const filteredActivos = activos
     .filter((activo) =>
+      activo.COD_ACT.toLowerCase().includes(searchCodeQuery.toLowerCase())
+    )
+    .filter((activo) =>
       activo.NOM_ACT.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter((activo) =>
@@ -96,6 +100,11 @@ const ActivosTable = () => {
     setCurrentPage(1);
   };
 
+  const handleCodeSearch = (e) => {
+    setSearchCodeQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
   const handleCategoryChange = (e) => {
     setFilterCategory(e.target.value);
     setCurrentPage(1);
@@ -129,11 +138,7 @@ const ActivosTable = () => {
 
   const handleUpdate = async () => {
     // Verifica si algún campo obligatorio está vacío
-    if (
-      !updatedActivo.NOM_ACT?.trim() ||
-      !updatedActivo.MAR_ACT?.trim() ||
-      !updatedActivo.MOD_ACT?.trim()
-    ) {
+    if (!updatedActivo.NOM_ACT?.trim() || !updatedActivo.MAR_ACT?.trim()) {
       setAlertMessage("Todos los campos requeridos deben estar completos.");
       setAlertSeverity("warning");
       setShowAlert(true);
@@ -184,9 +189,17 @@ const ActivosTable = () => {
         <header className="mb-4">
           {/* Barra de búsqueda y selectores */}
           <div className="d-flex gap-3 mb-4" style={{ maxWidth: "800px" }}>
+          <input
+              type="text"
+              placeholder="Codigo..."
+              value={searchCodeQuery}
+              onChange={handleCodeSearch}
+              className="form-control"
+              style={{ flex: "1 1 auto" }}
+            />
             <input
               type="text"
-              placeholder="Buscar activos..."
+              placeholder="Nombre..."
               value={searchQuery}
               onChange={handleSearch}
               className="form-control"
@@ -232,6 +245,14 @@ const ActivosTable = () => {
               <option value="Aula 1">Aula 1</option>
               <option value="Aula 2">Aula 2</option>
               <option value="Aula 3">Aula 3</option>
+              <option value="Aula 4">Aula 4</option>
+              <option value="Oficina Principal">Oficina Principal</option>
+              <option value="Oficina Secundaria">Oficina Secundaria</option>
+              <option value="Sala de Juntas">Sala de Juntas</option>
+              <option value="Almacén">Almacén</option>
+              <option value="Taller">Taller</option>
+              <option value="Recepción">Recepción</option>
+              <option value="Pasillo Principal">Pasillo Principal</option>
             </select>
           </div>
         </header>
@@ -244,11 +265,11 @@ const ActivosTable = () => {
             <table className="table table-bordered table-hover">
               <thead>
                 <tr>
+                  <th>Código</th>
                   <th onClick={toggleSortOrder} style={{ cursor: "pointer" }}>
                     Nombre {sortOrder === "asc" ? "▲" : "▼"}
                   </th>
                   <th>Marca</th>
-                  <th>Modelo</th>
                   <th>Categoría</th>
                   <th>Ubicación</th>
                   <th>Estado</th>
@@ -267,9 +288,9 @@ const ActivosTable = () => {
                 ) : (
                   paginatedActivos.map((activo) => (
                     <tr key={activo.ID_ACT}>
+                      <td>{activo.COD_ACT}</td>
                       <td>{activo.NOM_ACT}</td>
                       <td>{activo.MAR_ACT}</td>
-                      <td>{activo.MOD_ACT}</td>
                       <td>{activo.CAT_ACT}</td>
                       <td>{activo.UBI_ACT}</td>
                       <td>{activo.EST_ACT}</td>
@@ -331,26 +352,45 @@ const ActivosTable = () => {
                   </div>
                   <div className="mb-3">
                     <label className="form-label">Marca</label>
-                    <input
-                      type="text"
+                    <select
                       name="MAR_ACT"
-                      className="form-control"
+                      className="form-select"
                       value={updatedActivo.MAR_ACT || ""}
                       onChange={handleUpdateChange}
                       required
-                    />
+                    >
+                      <option value="Apple">Apple</option>
+                      <option value="Samsung">Samsung</option>
+                      <option value="Sony">Sony</option>
+                      <option value="Lenovo">Lenovo</option>
+                      <option value="Dell">Dell</option>
+                      <option value="HP">HP</option>
+                      <option value="Acer">Acer</option>
+                      <option value="Asus">Asus</option>
+                      <option value="Toshiba">Toshiba</option>
+                      <option value="LG">LG</option>
+                      <option value="Huawei">Huawei</option>
+                      <option value="Xiaomi">Xiaomi</option>
+                      <option value="Bosch">Bosch</option>
+                      <option value="Makita">Makita</option>
+                      <option value="Caterpillar">Caterpillar</option>
+                      <option value="Ford">Ford</option>
+                      <option value="Chevrolet">Chevrolet</option>
+                      <option value="Toyota">Toyota</option>
+                      <option value="Honda">Honda</option>
+                      <option value="General Electric">General Electric</option>
+                      <option value="3M">3M</option>
+                      <option value="Philips">Philips</option>
+                      <option value="Panasonic">Panasonic</option>
+                      <option value="Siemens">Siemens</option>
+                      <option value="IBM">IBM</option>
+                      <option value="Cisco">Cisco</option>
+                      <option value="Intel">Intel</option>
+                      <option value="AMD">AMD</option>
+                      <option value="Otros">Otros</option>
+                    </select>
                   </div>
-                  <div className="mb-3">
-                    <label className="form-label">Modelo</label>
-                    <input
-                      type="text"
-                      name="MOD_ACT"
-                      className="form-control"
-                      value={updatedActivo.MOD_ACT || ""}
-                      onChange={handleUpdateChange}
-                      required
-                    />
-                  </div>
+
                   <div className="mb-3">
                     <label className="form-label">Categoría</label>
                     <select
@@ -400,6 +440,20 @@ const ActivosTable = () => {
                       <option value="Aula 1">Aula 1</option>
                       <option value="Aula 2">Aula 2</option>
                       <option value="Aula 3">Aula 3</option>
+                      <option value="Aula 4">Aula 4</option>
+                      <option value="Oficina Principal">
+                        Oficina Principal
+                      </option>
+                      <option value="Oficina Secundaria">
+                        Oficina Secundaria
+                      </option>
+                      <option value="Sala de Juntas">Sala de Juntas</option>
+                      <option value="Almacén">Almacén</option>
+                      <option value="Taller">Taller</option>
+                      <option value="Recepción">Recepción</option>
+                      <option value="Pasillo Principal">
+                        Pasillo Principal
+                      </option>
                     </select>
                   </div>
                   <div className="mb-3">
@@ -410,9 +464,9 @@ const ActivosTable = () => {
                       value={updatedActivo.EST_ACT || ""}
                       onChange={handleUpdateChange}
                     >
-                      <option value="disponible">Disponible</option>
-                      <option value="mantenimiento">Mantenimiento</option>
-                      <option value="asignado">Asignado</option>
+                      <option value="Disponible">Disponible</option>
+                      <option value="En Mantenimiento">Mantenimiento</option>
+                      <option value="Nuevo">Nuevo</option>
                     </select>
                   </div>
                 </div>

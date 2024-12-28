@@ -5,9 +5,9 @@ export const getAllActivos = async () => {
     const [rows] = await pool.query(`
         SELECT 
           a.ID_ACT, 
+          a.COD_ACT, 
           a.NOM_ACT, 
           a.MAR_ACT, 
-          a.MOD_ACT, 
           a.CAT_ACT, 
           a.UBI_ACT, 
           a.EST_ACT, 
@@ -40,14 +40,14 @@ export const getActivoByIdFromDB = async (id) => {
 };
 
 export const addActivo = async (activo) => {
-  const { NOM_ACT, MAR_ACT, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = activo;
+  const { COD_ACT,NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = activo;
   
   const marca = MAR_ACT && MAR_ACT.trim() !== '' ? MAR_ACT : 'Desconocido';
 
   try {
     const [result] = await pool.query(
-      "INSERT INTO ACTIVOS (NOM_ACT, MAR_ACT, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-      [NOM_ACT, marca, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT]
+      "INSERT INTO ACTIVOS (COD_ACT,NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      [COD_ACT,NOM_ACT, marca, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT]
     );
     return { success: true, id: result.insertId };
   } catch (error) {
@@ -60,15 +60,14 @@ export const addActivo = async (activo) => {
 
 export const updateActivo = async (id, activoData) => {
   try {
-    const { NOM_ACT, MAR_ACT, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT } = activoData;
+    const { NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT } = activoData;
     const query = `
         UPDATE ACTIVOS
-        SET NOM_ACT = ?,MAR_ACT=?,MOD_ACT=?, CAT_ACT = ?, UBI_ACT = ?, EST_ACT = ?
+        SET NOM_ACT = ?,MAR_ACT=?, CAT_ACT = ?, UBI_ACT = ?, EST_ACT = ?
         WHERE ID_ACT = ?`;
     const [result] = await pool.query(query, [
       NOM_ACT,
       MAR_ACT,
-      MOD_ACT,
       CAT_ACT,
       UBI_ACT,
       EST_ACT,

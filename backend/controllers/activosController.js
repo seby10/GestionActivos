@@ -63,9 +63,9 @@ export const editActivo = async (req, res) => {
 };
 
 export const addActivoController = async (req, res) => {
-  const { NOM_ACT, MAR_ACT, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = req.body;
+  const {COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = req.body;
   try {
-    const result = await addActivo({ NOM_ACT, MAR_ACT, MOD_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT });
+    const result = await addActivo({COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT });
     console.log(`Activo agregado con ID: ${result.id}`);
 
     res.status(200).json({ message: 'Activo agregado correctamente', id: result.id });
@@ -85,9 +85,9 @@ export const addActivosFromExcel = async (req, res) => {
   try {
     for (const activo of activos) {
       const { 
+        COD_ACT,
         NOM_ACT, 
         MAR_ACT, 
-        MOD_ACT, 
         CAT_ACT, 
         UBI_ACT, 
         EST_ACT, 
@@ -95,9 +95,9 @@ export const addActivosFromExcel = async (req, res) => {
         PC_ACT 
       } = activo;
       const result = await addActivo({ 
+        COD_ACT,
         NOM_ACT, 
         MAR_ACT, 
-        MOD_ACT, 
         CAT_ACT, 
         UBI_ACT, 
         EST_ACT, 

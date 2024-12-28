@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { FaHome, FaTools, FaBars, FaSignOutAlt } from "react-icons/fa";
+import {
+  FaHome,
+  FaTools,
+  FaBars,
+  FaSignOutAlt,
+  FaUserCircle,
+} from "react-icons/fa";
 import {
   Dialog,
   DialogActions,
@@ -16,6 +22,7 @@ const Header = () => {
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
   const [openDialog, setOpenDialog] = useState(false);
+
   const handleLogoutConfirm = () => {
     setOpenDialog(false);
     handleLogout();
@@ -29,19 +36,6 @@ const Header = () => {
     navigate("/login");
   };
 
-  const navItems = [
-    {
-      name: "Activos",
-      path:
-        user && user.type === "admin"
-          ? "/admin/dashboard"
-          : "/tecnico/dashboard",
-      icon: FaHome,
-    },
-    { name: "Mantenimientos", path: "/mantenimientos", icon: FaTools },
-  ];
-  
-
   return (
     <nav className="header">
       <div className="header-container">
@@ -52,20 +46,10 @@ const Header = () => {
           <FaBars />
         </div>
         <ul className={isOpen ? "nav-menu active" : "nav-menu"}>
-          {navItems.map((item) => (
-            <li key={item.name} className="nav-item">
-              <Link
-                to={item.path}
-                className={`nav-link ${
-                  location.pathname === item.path ? "active" : ""
-                }`}
-                onClick={() => setIsOpen(false)}
-              >
-                <item.icon className="nav-icon" />
-                <span>{item.name}</span>
-              </Link>
-            </li>
-          ))}
+          <li className="user-info">
+            <FaUserCircle className="user-icon" />
+            <span>{user.name}</span>
+          </li>
           <li className="nav-item">
             <button
               onClick={() => setOpenDialog(true)}
@@ -105,12 +89,13 @@ const Header = () => {
           background-color: #457b9d;
           height: 80px;
           display: flex;
-          justify-content: center;
+          justify-content: space-between;
           align-items: center;
           font-size: 1rem;
           position: sticky;
           top: 0;
           z-index: 999;
+          padding: 0 24px;
         }
 
         .header-container {
@@ -119,13 +104,11 @@ const Header = () => {
           align-items: center;
           width: 100%;
           height: 80px;
-          max-width: 1500px;
-          padding: 0 24px;
+          
         }
 
         .header-logo {
           color: #fff;
-          justify-self: flex-start;
           cursor: pointer;
           font-size: 1.5rem;
           display: flex;
@@ -174,6 +157,14 @@ const Header = () => {
         .user-info {
           color: #fff;
           padding: 0 1rem;
+          font-size: 16px;
+          display: flex;
+          align-items: center;
+        }
+
+        .user-icon {
+          font-size: 1.8rem;
+          margin-right: 0.5rem;
         }
 
         .logout-button {
@@ -186,6 +177,7 @@ const Header = () => {
           font-size: 1rem;
           padding: 0 1rem;
           height: 100%;
+          margin-right: 0;
         }
 
         .logout-button:hover {

@@ -14,7 +14,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/admin/dashboard" replace />;
   } else if (userType === 'tecnico' && window.location.pathname !== '/tecnico/dashboard') {
     return <Navigate to="/tecnico/dashboard" replace />;
-  }
+  } 
 
   return children;
 };

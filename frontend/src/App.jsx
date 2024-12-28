@@ -4,7 +4,6 @@ import Login from "./components/Login";
 import AdminDashboard from "./components/AdminDashboard";
 import TecnicoDashboard from "./components/TecnicoDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
-import Mantenimientos from "./components/mantenimientos";
 
 const App = () => {
   return (
@@ -27,14 +26,7 @@ const App = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/mantenimientos"
-        element={
-          <ProtectedRoute>
-            <Mantenimientos />
-          </ProtectedRoute>
-        }
-      />
+      
       <Route path="/" element={<Navigate replace to="/login" />} />
     </Routes>
   );
