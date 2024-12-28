@@ -101,7 +101,7 @@ const MaintenanceRow = ({ maintenance, onUpdate }) => {
   const getFinishButtonText = () => {
     if (finishLoading) return 'Finalizando...';
     if (maintenance.ESTADO_MANT === 'Finalizado') return 'Finalizado';
-    if (!canFinish) return 'Pendiente';
+    if (!canFinish) return 'Finalizar';
     return 'Finalizar';
   };
 
@@ -109,8 +109,8 @@ const MaintenanceRow = ({ maintenance, onUpdate }) => {
     <>
       <TableRow hover>
         <StyledTableCell>
-          <IconButton 
-            size="small" 
+          <IconButton
+            size="small"
             onClick={handleToggle}
             sx={{ transition: 'transform 0.3s' }}
           >
@@ -253,6 +253,12 @@ const ExpandableTable = () => {
     activos: [],
   });
   const [assetsList, setAssetsList] = useState([]);
+  const [filterCode, setFilterCode] = useState('');
+  const [filterTechnician, setFilterTechnician] = useState('');
+  const [filterDate, setFilterDate] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  //const [filterType, setFilterType] = useState('');
+
   const showAlert = (message, severity = 'error') => {
     setAlertMessage(message);
     setAlertSeverity(severity);
@@ -282,6 +288,18 @@ const ExpandableTable = () => {
     }
 
     return true;
+  };
+
+  const getFilteredMaintenances = () => {
+    return maintenances.filter(maintenance => {
+      const matchCode = maintenance.COD_MANT.toLowerCase().includes(filterCode.toLowerCase());
+      const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || '').toLowerCase().includes(filterTechnician.toLowerCase());
+      const matchDate = !filterDate || maintenance.FEC_INI_MANT.includes(filterDate);
+      const matchStatus = !filterStatus || maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
+      //const matchType = !filterType || maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
+
+      return matchCode && matchTechnician && matchDate && matchStatus;
+    });
   };
 
   const fetchTechnicians = async (type) => {
@@ -418,6 +436,53 @@ const ExpandableTable = () => {
         Crear Mantenimiento
       </Button>
 
+      <Paper
+        sx={{
+          p: 2,
+          mb: 3,
+          display: 'flex',
+          gap: 2,
+          flexWrap: 'wrap',
+          alignItems: 'center'
+        }}
+      >
+        <TextField
+          label="Código"
+          size="small"
+          value={filterCode}
+          onChange={(e) => setFilterCode(e.target.value)}
+          sx={{ minWidth: '200px' }}
+        />
+        <TextField
+          label="Técnico"
+          size="small"
+          value={filterTechnician}
+          onChange={(e) => setFilterTechnician(e.target.value)}
+          sx={{ minWidth: '200px' }}
+        />
+        <TextField
+          label="Fecha"
+          type="date"
+          size="small"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          InputLabelProps={{ shrink: true }}
+          sx={{ minWidth: '200px' }}
+        />
+        <TextField
+          select
+          label="Estado"
+          size="small"
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+          sx={{ minWidth: '200px' }}
+        >
+          <MenuItem value="">Todos</MenuItem>
+          <MenuItem value="En ejecucion">En ejecucion</MenuItem>
+          <MenuItem value="Finalizado">Finalizado</MenuItem>
+        </TextField>
+      </Paper>
+
       <Dialog open={openModal} onClose={handleCloseModal} maxWidth="md" fullWidth>
         <DialogTitle>Crear Mantenimiento</DialogTitle>
         <DialogContent>
@@ -549,12 +614,12 @@ const ExpandableTable = () => {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
                   <CircularProgress />
                 </TableCell>
               </TableRow>
             ) : (
-              maintenances.map((maintenance) => (
+              getFilteredMaintenances().map((maintenance) => (
                 <MaintenanceRow
                   key={maintenance.ID_MANT}
                   maintenance={maintenance}
