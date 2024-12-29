@@ -22,57 +22,78 @@ import {
   MenuItem,
   Alert,
   Snackbar,
-  styled
+  styled,
 } from "@mui/material";
-import { Visibility, KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
-import { mantenimientosServices } from '../services/mantenimientosServices.js';
+import {
+  Visibility,
+  KeyboardArrowDown,
+  KeyboardArrowUp,
+} from "@mui/icons-material";
+import ActivoModal from "./ActivoModal";
+import { mantenimientosServices } from "../services/mantenimientosServices.js";
 
 const StyledTableHead = styled(TableHead)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
-  '& .MuiTableCell-head': {
+  "& .MuiTableCell-head": {
     color: theme.palette.common.white,
-    fontWeight: 'bold',
-    fontSize: '1rem'
-  }
+    fontWeight: "bold",
+    fontSize: "1rem",
+  },
 }));
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   borderBottom: `1px solid ${theme.palette.divider}`,
-  padding: theme.spacing(2)
+  padding: theme.spacing(2),
 }));
 
 const formatDate = (dateString) => {
-  if (!dateString) return '';
+  if (!dateString) return "";
   const date = new Date(dateString);
-  return new Intl.DateTimeFormat('es-EC', {
-    timeZone: 'America/Guayaquil',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
+  return new Intl.DateTimeFormat("es-EC", {
+    timeZone: "America/Guayaquil",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
   }).format(date);
 };
 
 // Componente de fila de mantenimiento
-const MaintenanceRow = ({ maintenance, onUpdate }) => {
+const MaintenanceRow = ({ maintenance, onUpdate, showAlert }) => {
   const [open, setOpen] = useState(false);
   const [assets, setAssets] = useState([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
   const [canFinish, setCanFinish] = useState(false);
-  const [finishLoading, setFinishLoading] = useState(false);// Cambiado a false por defecto
+  const [finishLoading, setFinishLoading] = useState(false);
+  const [activoSeleccionado, setActivoSeleccionado] = useState(null);
+
+  const openActivityModal = (asset) => {
+    console.log("Activo seleccionado:", asset); // Verifica el contenido
+    setActivoSeleccionado(asset);
+  };
+
+  const closeActivityModal = () => {
+    setActivoSeleccionado(null);
+    handleToggle();
+  };
 
   const handleToggle = async () => {
     if (!open) {
       setLoadingAssets(true);
       try {
-        const fetchedAssets = await mantenimientosServices.getMaintenanceDetails(maintenance.ID_MANT);
+        const fetchedAssets =
+          await mantenimientosServices.getMaintenanceDetails(
+            maintenance.ID_MANT
+          );
         setAssets(fetchedAssets);
-        const allInMaintenance = fetchedAssets.every(asset => asset.EST_DET_MANT === 'Finalizado');
+        const allInMaintenance = fetchedAssets.every(
+          (asset) => asset.EST_DET_MANT === "Finalizado"
+        );
         setCanFinish(allInMaintenance);
       } catch (error) {
-        console.error('Error loading maintenance details:', error);
+        console.error("Error loading maintenance details:", error);
       } finally {
         setLoadingAssets(false);
       }
@@ -86,23 +107,23 @@ const MaintenanceRow = ({ maintenance, onUpdate }) => {
       await mantenimientosServices.finishMaintenance(maintenance.ID_MANT);
       onUpdate();
     } catch (error) {
-      console.error('Error finishing maintenance:', error);
+      console.error("Error finishing maintenance:", error);
     } finally {
       setFinishLoading(false);
     }
   };
 
   const getFinishButtonColor = () => {
-    if (maintenance.ESTADO_MANT === 'Finalizado') return 'success';
-    if (canFinish) return 'primary';
-    return 'inherit';
+    if (maintenance.ESTADO_MANT === "Finalizado") return "success";
+    if (canFinish) return "primary";
+    return "inherit";
   };
 
   const getFinishButtonText = () => {
-    if (finishLoading) return 'Finalizando...';
-    if (maintenance.ESTADO_MANT === 'Finalizado') return 'Finalizado';
-    if (!canFinish) return 'Finalizar';
-    return 'Finalizar';
+    if (finishLoading) return "Finalizando...";
+    if (maintenance.ESTADO_MANT === "Finalizado") return "Finalizado";
+    if (!canFinish) return "Finalizar";
+    return "Finalizar";
   };
 
   return (
@@ -112,38 +133,48 @@ const MaintenanceRow = ({ maintenance, onUpdate }) => {
           <IconButton
             size="small"
             onClick={handleToggle}
-            sx={{ transition: 'transform 0.3s' }}
+            sx={{ transition: "transform 0.3s" }}
           >
             {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
           </IconButton>
         </StyledTableCell>
         <StyledTableCell>{maintenance.COD_MANT}</StyledTableCell>
         <StyledTableCell>{maintenance.DESC_MANT}</StyledTableCell>
-        <StyledTableCell>{formatDate(maintenance.FEC_INI_MANT)}</StyledTableCell>
-        <StyledTableCell>{maintenance.ID_TEC_INT === null ? maintenance.NOM_PRO : maintenance.NOM_USU}</StyledTableCell>
+        <StyledTableCell>
+          {formatDate(maintenance.FEC_INI_MANT)}
+        </StyledTableCell>
+        <StyledTableCell>
+          {maintenance.ID_TEC_INT === null
+            ? maintenance.NOM_PRO
+            : maintenance.NOM_USU}
+        </StyledTableCell>
         <StyledTableCell>
           <Typography
             variant="body2"
             sx={{
-              backgroundColor: maintenance.ID_TEC_INT === null ? '#ff9800' : '#4caf50',
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              display: 'inline-block'
+              backgroundColor:
+                maintenance.ID_TEC_INT === null ? "#ff9800" : "#4caf50",
+              color: "white",
+              padding: "4px 8px",
+              borderRadius: "4px",
+              display: "inline-block",
             }}
           >
-            {maintenance.ID_TEC_INT === null ? 'EXTERNO' : 'INTERNO'}
+            {maintenance.ID_TEC_INT === null ? "EXTERNO" : "INTERNO"}
           </Typography>
         </StyledTableCell>
         <StyledTableCell>
           <Typography
             variant="body2"
             sx={{
-              backgroundColor: maintenance.ESTADO_MANT === 'Finalizado' ? '#4caf50' : '#2196f3',
-              color: 'white',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              display: 'inline-block'
+              backgroundColor:
+                maintenance.ESTADO_MANT === "Finalizado"
+                  ? "#4caf50"
+                  : "#2196f3",
+              color: "white",
+              padding: "4px 8px",
+              borderRadius: "4px",
+              display: "inline-block",
             }}
           >
             {maintenance.ESTADO_MANT}
@@ -152,17 +183,34 @@ const MaintenanceRow = ({ maintenance, onUpdate }) => {
         <StyledTableCell>
           <Button
             onClick={handleFinishMaintenance}
-            disabled={!canFinish || maintenance.ESTADO_MANT === 'Finalizado' || finishLoading}
-            variant={maintenance.ESTADO_MANT === 'Finalizado' ? "outlined" : "contained"}
+            disabled={
+              !canFinish ||
+              maintenance.ESTADO_MANT === "Finalizado" ||
+              finishLoading
+            }
+            variant={
+              maintenance.ESTADO_MANT === "Finalizado"
+                ? "outlined"
+                : "contained"
+            }
             color={getFinishButtonColor()}
             sx={{
-              minWidth: '100px',
-              position: 'relative',
-              '&.Mui-disabled': {
-                backgroundColor: maintenance.ESTADO_MANT === 'Finalizado' ? 'transparent' : '#e0e0e0',
-                border: maintenance.ESTADO_MANT === 'Finalizado' ? '1px solid #4caf50' : 'none',
-                color: maintenance.ESTADO_MANT === 'Finalizado' ? '#4caf50' : 'rgba(0, 0, 0, 0.26)'
-              }
+              minWidth: "100px",
+              position: "relative",
+              "&.Mui-disabled": {
+                backgroundColor:
+                  maintenance.ESTADO_MANT === "Finalizado"
+                    ? "transparent"
+                    : "#e0e0e0",
+                border:
+                  maintenance.ESTADO_MANT === "Finalizado"
+                    ? "1px solid #4caf50"
+                    : "none",
+                color:
+                  maintenance.ESTADO_MANT === "Finalizado"
+                    ? "#4caf50"
+                    : "rgba(0, 0, 0, 0.26)",
+              },
             }}
           >
             {finishLoading ? (
@@ -170,11 +218,11 @@ const MaintenanceRow = ({ maintenance, onUpdate }) => {
                 size={24}
                 sx={{
                   color: getFinishButtonColor(),
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  marginTop: '-12px',
-                  marginLeft: '-12px'
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  marginTop: "-12px",
+                  marginLeft: "-12px",
                 }}
               />
             ) : null}
@@ -183,7 +231,7 @@ const MaintenanceRow = ({ maintenance, onUpdate }) => {
         </StyledTableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
               <Typography variant="h6" gutterBottom component="div">
@@ -230,6 +278,15 @@ const MaintenanceRow = ({ maintenance, onUpdate }) => {
           </Collapse>
         </TableCell>
       </TableRow>
+      {/* Modal */}
+      {activoSeleccionado && (
+        <ActivoModal
+          activoId={activoSeleccionado.ID_DET_MANT}
+          closeModal={closeActivityModal}
+          activoCodigo={activoSeleccionado.COD_ACT}
+          showAlert={showAlert}
+        />
+      )}
     </>
   );
 };
@@ -238,12 +295,12 @@ const ExpandableTable = () => {
   const [maintenances, setMaintenances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openModal, setOpenModal] = useState(false);
-  const [technicalType, setTechnicalType] = useState('internal');
+  const [technicalType, setTechnicalType] = useState("internal");
   const [internalUsers, setInternalUsers] = useState([]);
   const [externalProviders, setExternalProviders] = useState([]);
   const [alertOpen, setAlertOpen] = useState(false);
-  const [alertMessage, setAlertMessage] = useState('');
-  const [alertSeverity, setAlertSeverity] = useState('success');
+  const [alertMessage, setAlertMessage] = useState("");
+  const [alertSeverity, setAlertSeverity] = useState("success");
   const [newMaintenance, setNewMaintenance] = useState({
     codigo: "",
     descripcion: "",
@@ -253,13 +310,14 @@ const ExpandableTable = () => {
     activos: [],
   });
   const [assetsList, setAssetsList] = useState([]);
-  const [filterCode, setFilterCode] = useState('');
-  const [filterTechnician, setFilterTechnician] = useState('');
-  const [filterDate, setFilterDate] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterCode, setFilterCode] = useState("");
+  const [filterTechnician, setFilterTechnician] = useState("");
+  const [filterDate, setFilterDate] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
+
   //const [filterType, setFilterType] = useState('');
 
-  const showAlert = (message, severity = 'error') => {
+  const showAlert = (message, severity = "error") => {
     setAlertMessage(message);
     setAlertSeverity(severity);
     setAlertOpen(true);
@@ -267,10 +325,10 @@ const ExpandableTable = () => {
 
   const validateFields = () => {
     const requiredFields = {
-      codigo: 'Código',
-      descripcion: 'Descripción',
-      fechaInicio: 'Fecha de Inicio',
-      tecnicoAsignado: 'Técnico Asignado'
+      codigo: "Código",
+      descripcion: "Descripción",
+      fechaInicio: "Fecha de Inicio",
+      tecnicoAsignado: "Técnico Asignado",
     };
 
     const emptyFields = Object.entries(requiredFields)
@@ -278,12 +336,14 @@ const ExpandableTable = () => {
       .map(([_, label]) => label);
 
     if (emptyFields.length > 0) {
-      showAlert(`Por favor complete los siguientes campos: ${emptyFields.join(', ')}`);
+      showAlert(
+        `Por favor complete los siguientes campos: ${emptyFields.join(", ")}`
+      );
       return false;
     }
 
     if (newMaintenance.activos.length === 0) {
-      showAlert('Debe seleccionar al menos un activo');
+      showAlert("Debe seleccionar al menos un activo");
       return false;
     }
 
@@ -291,11 +351,18 @@ const ExpandableTable = () => {
   };
 
   const getFilteredMaintenances = () => {
-    return maintenances.filter(maintenance => {
-      const matchCode = maintenance.COD_MANT.toLowerCase().includes(filterCode.toLowerCase());
-      const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || '').toLowerCase().includes(filterTechnician.toLowerCase());
-      const matchDate = !filterDate || maintenance.FEC_INI_MANT.includes(filterDate);
-      const matchStatus = !filterStatus || maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
+    return maintenances.filter((maintenance) => {
+      const matchCode = maintenance.COD_MANT.toLowerCase().includes(
+        filterCode.toLowerCase()
+      );
+      const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || "")
+        .toLowerCase()
+        .includes(filterTechnician.toLowerCase());
+      const matchDate =
+        !filterDate || maintenance.FEC_INI_MANT.includes(filterDate);
+      const matchStatus =
+        !filterStatus ||
+        maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
       //const matchType = !filterType || maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
 
       return matchCode && matchTechnician && matchDate && matchStatus;
@@ -304,7 +371,7 @@ const ExpandableTable = () => {
 
   const fetchTechnicians = async (type) => {
     try {
-      if (type === 'internal') {
+      if (type === "internal") {
         const users = await mantenimientosServices.getInternalUsers();
         setInternalUsers(users);
       } else {
@@ -321,12 +388,12 @@ const ExpandableTable = () => {
       setLoading(true);
       const [maintenancesData, assetsData] = await Promise.all([
         mantenimientosServices.getMaintenances(),
-        mantenimientosServices.getAvailableAssets()
+        mantenimientosServices.getAvailableAssets(),
       ]);
       setMaintenances(maintenancesData);
       setAssetsList(assetsData);
     } catch (error) {
-      console.error('Error loading initial data:', error);
+      console.error("Error loading initial data:", error);
     } finally {
       setLoading(false);
     }
@@ -334,10 +401,7 @@ const ExpandableTable = () => {
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      await Promise.all([
-        fetchMaintenances(),
-        fetchTechnicians('internal')
-      ]);
+      await Promise.all([fetchMaintenances(), fetchTechnicians("internal")]);
     };
 
     fetchInitialData();
@@ -357,16 +421,16 @@ const ExpandableTable = () => {
       tipoTecnico: "internal",
       activos: [],
     });
-    setTechnicalType('internal');
+    setTechnicalType("internal");
   };
 
   const handleTechnicianTypeChange = async (event) => {
     const type = event.target.value;
     setTechnicalType(type);
-    setNewMaintenance(prev => ({
+    setNewMaintenance((prev) => ({
       ...prev,
-      tecnicoAsignado: '',
-      tipoTecnico: type
+      tecnicoAsignado: "",
+      tipoTecnico: type,
     }));
     await fetchTechnicians(type);
   };
@@ -374,41 +438,44 @@ const ExpandableTable = () => {
   const handleSaveMaintenance = async () => {
     if (!validateFields()) return;
 
-
     try {
       // Crear el mantenimiento
-      const maintenanceResponse = await mantenimientosServices.createMaintenance({
-        codigo: newMaintenance.codigo,
-        descripcion: newMaintenance.descripcion,
-        fecha: newMaintenance.fechaInicio,
-        tecnico: newMaintenance.tecnicoAsignado,
-        tipoTecnico: newMaintenance.tipoTecnico
-      });
+      const maintenanceResponse =
+        await mantenimientosServices.createMaintenance({
+          codigo: newMaintenance.codigo,
+          descripcion: newMaintenance.descripcion,
+          fecha: newMaintenance.fechaInicio,
+          tecnico: newMaintenance.tecnicoAsignado,
+          tipoTecnico: newMaintenance.tipoTecnico,
+        });
 
       // Si llegamos aquí, el mantenimiento se creó exitosamente
       // Actualizar estado de activos y añadirlos al mantenimiento
-      await Promise.all(newMaintenance.activos.map(async (assetId) => {
-        await mantenimientosServices.changeStatusAssets(assetId);
-        return mantenimientosServices.addAssetsToMaintenance({
-          id_act: assetId,
-          id_mant_per: maintenanceResponse.id
-        });
-      }));
+      await Promise.all(
+        newMaintenance.activos.map(async (assetId) => {
+          await mantenimientosServices.changeStatusAssets(assetId);
+          return mantenimientosServices.addAssetsToMaintenance({
+            id_act: assetId,
+            id_mant_per: maintenanceResponse.id,
+          });
+        })
+      );
 
-      showAlert('Mantenimiento creado exitosamente', 'success');
+      showAlert("Mantenimiento creado exitosamente", "success");
       await fetchMaintenances();
       handleCloseModal();
     } catch (error) {
       // Manejar el error específico de código duplicado
-      if (error.code === 'ER_DUP_ENTRY') {
-        showAlert('El código de mantenimiento ingresado ya existe');
+      if (error.code === "ER_DUP_ENTRY") {
+        showAlert("El código de mantenimiento ingresado ya existe");
       } else if (error.response && error.response.data) {
-        showAlert(error.response.data.message || 'Error al crear el mantenimiento');
+        showAlert(
+          error.response.data.message || "Error al crear el mantenimiento"
+        );
       } else {
-        showAlert('Error al crear el mantenimiento');
+        showAlert("Error al crear el mantenimiento");
       }
     }
-
   };
 
   const toggleAssetSelection = (assetId) => {
@@ -427,10 +494,10 @@ const ExpandableTable = () => {
         onClick={handleOpenModal}
         sx={{
           mb: 3,
-          backgroundColor: theme => theme.palette.primary.main,
-          '&:hover': {
-            backgroundColor: theme => theme.palette.primary.dark,
-          }
+          backgroundColor: (theme) => theme.palette.primary.main,
+          "&:hover": {
+            backgroundColor: (theme) => theme.palette.primary.dark,
+          },
         }}
       >
         Crear Mantenimiento
@@ -440,10 +507,10 @@ const ExpandableTable = () => {
         sx={{
           p: 2,
           mb: 3,
-          display: 'flex',
+          display: "flex",
           gap: 2,
-          flexWrap: 'wrap',
-          alignItems: 'center'
+          flexWrap: "wrap",
+          alignItems: "center",
         }}
       >
         <TextField
@@ -451,14 +518,14 @@ const ExpandableTable = () => {
           size="small"
           value={filterCode}
           onChange={(e) => setFilterCode(e.target.value)}
-          sx={{ minWidth: '200px' }}
+          sx={{ minWidth: "200px" }}
         />
         <TextField
           label="Técnico"
           size="small"
           value={filterTechnician}
           onChange={(e) => setFilterTechnician(e.target.value)}
-          sx={{ minWidth: '200px' }}
+          sx={{ minWidth: "200px" }}
         />
         <TextField
           label="Fecha"
@@ -467,7 +534,7 @@ const ExpandableTable = () => {
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
           InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: '200px' }}
+          sx={{ minWidth: "200px" }}
         />
         <TextField
           select
@@ -475,7 +542,7 @@ const ExpandableTable = () => {
           size="small"
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
-          sx={{ minWidth: '200px' }}
+          sx={{ minWidth: "200px" }}
         >
           <MenuItem value="">Todos</MenuItem>
           <MenuItem value="En ejecucion">En ejecucion</MenuItem>
@@ -483,7 +550,12 @@ const ExpandableTable = () => {
         </TextField>
       </Paper>
 
-      <Dialog open={openModal} onClose={handleCloseModal} maxWidth="md" fullWidth>
+      <Dialog
+        open={openModal}
+        onClose={handleCloseModal}
+        maxWidth="md"
+        fullWidth
+      >
         <DialogTitle>Crear Mantenimiento</DialogTitle>
         <DialogContent>
           <TextField
@@ -491,14 +563,21 @@ const ExpandableTable = () => {
             fullWidth
             margin="normal"
             value={newMaintenance.COD_MANT}
-            onChange={(e) => setNewMaintenance({ ...newMaintenance, codigo: e.target.value })}
+            onChange={(e) =>
+              setNewMaintenance({ ...newMaintenance, codigo: e.target.value })
+            }
           />
           <TextField
             label="Descripcion"
             fullWidth
             margin="normal"
             value={newMaintenance.DESC_MANT}
-            onChange={(e) => setNewMaintenance({ ...newMaintenance, descripcion: e.target.value })}
+            onChange={(e) =>
+              setNewMaintenance({
+                ...newMaintenance,
+                descripcion: e.target.value,
+              })
+            }
           />
           <TextField
             label="Fecha de Inicio"
@@ -507,7 +586,12 @@ const ExpandableTable = () => {
             margin="normal"
             InputLabelProps={{ shrink: true }}
             value={newMaintenance.FEC_INI_MANT}
-            onChange={(e) => setNewMaintenance({ ...newMaintenance, fechaInicio: e.target.value })}
+            onChange={(e) =>
+              setNewMaintenance({
+                ...newMaintenance,
+                fechaInicio: e.target.value,
+              })
+            }
           />
           <TextField
             select
@@ -526,24 +610,24 @@ const ExpandableTable = () => {
             fullWidth
             margin="normal"
             value={newMaintenance.tecnicoAsignado}
-            onChange={(e) => setNewMaintenance({
-              ...newMaintenance,
-              tecnicoAsignado: e.target.value
-            })}
+            onChange={(e) =>
+              setNewMaintenance({
+                ...newMaintenance,
+                tecnicoAsignado: e.target.value,
+              })
+            }
           >
-            {technicalType === 'internal' ? (
-              internalUsers.map((user) => (
-                <MenuItem key={user.ID_USU} value={user.ID_USU}>
-                  {user.NOM_USU}
-                </MenuItem>
-              ))
-            ) : (
-              externalProviders.map((provider) => (
-                <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
-                  {provider.NOM_PRO}
-                </MenuItem>
-              ))
-            )}
+            {technicalType === "internal"
+              ? internalUsers.map((user) => (
+                  <MenuItem key={user.ID_USU} value={user.ID_USU}>
+                    {user.NOM_USU}
+                  </MenuItem>
+                ))
+              : externalProviders.map((provider) => (
+                  <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
+                    {provider.NOM_PRO}
+                  </MenuItem>
+                ))}
           </TextField>
 
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
@@ -583,9 +667,11 @@ const ExpandableTable = () => {
             </Table>
           </TableContainer>
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ marginBottom: "20px", marginTop: "20px",marginLeft: "20px" }}>
           <Button onClick={handleCloseModal}>Cancelar</Button>
-          <Button onClick={handleSaveMaintenance}>Guardar</Button>
+          <Button variant="contained" onClick={handleSaveMaintenance}>
+            Guardar
+          </Button>
         </DialogActions>
       </Dialog>
 
@@ -595,7 +681,7 @@ const ExpandableTable = () => {
           mt: 2,
           boxShadow: 3,
           borderRadius: 2,
-          overflow: 'hidden'
+          overflow: "hidden",
         }}
       >
         <Table>
@@ -624,6 +710,7 @@ const ExpandableTable = () => {
                   key={maintenance.ID_MANT}
                   maintenance={maintenance}
                   onUpdate={fetchMaintenances}
+                  showAlert={showAlert}
                 />
               ))
             )}
@@ -635,12 +722,12 @@ const ExpandableTable = () => {
         open={alertOpen}
         autoHideDuration={6000}
         onClose={() => setAlertOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={() => setAlertOpen(false)}
           severity={alertSeverity}
-          sx={{ width: '100%' }}
+          sx={{ width: "100%" }}
           elevation={6}
           variant="filled"
         >

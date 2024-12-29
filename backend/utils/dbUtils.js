@@ -63,6 +63,34 @@ const detallesMantenimientoTableQuery = `CREATE TABLE IF NOT EXISTS DETALLES_MAN
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );`;
 
+const actividadesTableQuery =`CREATE TABLE IF NOT EXISTS actividades (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descripcion VARCHAR(255) NOT NULL
+);`;
+
+const componentesTableQuery =`CREATE TABLE IF NOT EXISTS componentes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    descripcion VARCHAR(255) NOT NULL
+);`;
+const activoActividadTableQuery =`CREATE TABLE IF NOT EXISTS activo_actividad (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    actividad_id INT NOT NULL,
+    id_det_mant INT NOT NULL,  
+    FOREIGN KEY (actividad_id) REFERENCES actividades(id),
+    FOREIGN KEY (id_det_mant) REFERENCES DETALLES_MANTENIMIENTO(ID_DET_MANT),  
+    UNIQUE (actividad_id, id_det_mant)
+);
+`;
+const activoComponentesTableQuery =`CREATE TABLE IF NOT EXISTS activo_componente (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    componente_id INT NOT NULL,
+    id_det_mant INT NOT NULL, 
+    FOREIGN KEY (componente_id) REFERENCES componentes(id),
+    FOREIGN KEY (id_det_mant) REFERENCES DETALLES_MANTENIMIENTO(ID_DET_MANT),
+    UNIQUE (componente_id, id_det_mant) 
+);`;
+
+
 const createTable = async (tableName, query) => {
     try {
         await pool.query(query);
@@ -106,6 +134,10 @@ const createAllTable = async () => {
         await createTable("Activos", activoTableQuery);
         await createTable("Mantenimientos", mantenimientoTableQuery);
         await createTable("DetallesMantenimiento", detallesMantenimientoTableQuery);
+        await createTable("Actividades", actividadesTableQuery);
+        await createTable("Componentes", componentesTableQuery);
+        await createTable("ActivosActividades",activoActividadTableQuery);
+        await createTable("ActivosComponentes", activoComponentesTableQuery);
         
         // Poblar la tabla de encargados
         //await populateEncargados();

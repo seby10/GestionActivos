@@ -185,13 +185,13 @@ const ActivosTable = () => {
           )}
         </div>
       </div>
-      <div style={{ backgroundColor: "rgb(240 244 248)" }} className="card p-4">
+      <div  className="card p-4">
         <header className="mb-4">
           {/* Barra de búsqueda y selectores */}
           <div className="d-flex gap-3 mb-4" style={{ maxWidth: "800px" }}>
-          <input
+            <input
               type="text"
-              placeholder="Codigo..."
+              placeholder="Código..."
               value={searchCodeQuery}
               onChange={handleCodeSearch}
               className="form-control"
@@ -262,7 +262,7 @@ const ActivosTable = () => {
           <p className="text-danger">{error}</p>
         ) : (
           <div className="table-responsive" style={{ fontFamily: "Helvetica" }}>
-            <table className="table table-bordered table-hover">
+            <table className="table">
               <thead>
                 <tr>
                   <th>Código</th>
@@ -541,12 +541,92 @@ const ActivosTable = () => {
           <Alert
             onClose={() => setShowAlert(false)}
             severity={alertSeverity}
-            sx={{ width: "100%" }}
+            sx={{
+              width: "100%",
+              backgroundColor:
+                alertSeverity === "error" ? "#f44336" : "#4caf50",
+            }}
           >
             {alertMessage}
           </Alert>
         </Snackbar>
       )}
+      <style jsx>
+        {`
+          .table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden
+          }
+
+          .table th,
+          .table td {
+            padding: 12px 20px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+          }
+
+          .table th {
+            background-color: #1976d2;
+            color: white;
+          }
+
+          .table tr:hover {
+            background-color: #f1f1f1 !important;
+          }
+
+          .table .btn {
+            border-radius: 5px;
+            padding: 8px 15px;
+          }
+
+          .table .btn-outline-primary {
+            border: 1px solid #1976d2;
+            color: #1976d2;
+          }
+
+          .table .btn-outline-primary:hover {
+            background-color: #1976d2 !important;
+            color: white;
+          }
+
+          .table .btn-outline-primary:focus {
+            box-shadow: none;
+          }
+
+          .table .active {
+            background-color: #1976d2;
+            color: white;
+          }
+
+          .table .pagination-button {
+            background-color: transparent;
+            border: 1px solid #1976d2;
+            color: #1976d2;
+          }
+
+          .table .pagination-button.active {
+            background-color: #1976d2;
+            color: white;
+          }
+
+          .table .pagination-button:hover {
+            background-color: #1976d2;
+            color: white;
+          }
+
+          .table .pagination-button:focus {
+            box-shadow: none;
+          }
+
+          /* Estilo para los alertas */
+          .alert {
+            margin-top: 20px;
+            padding: 10px;
+          }
+        `}
+      </style>
     </div>
   );
 };
