@@ -5,8 +5,9 @@ import {
   getActivosByEstadoController,
   finalizarMantenimientoController,
   updateEstadoActivoController,
+  updateEstadoMantenimientoActivoController,
   getMantenimientosController,
-  getDetallesMantenimientoController
+  getDetallesMantenimientoController,
 } from "../controllers/mantenimientosController.js";
 
 const router = express.Router();
@@ -18,5 +19,6 @@ router.post("/addDetallesMantenimiento", addDetallesMantenimientoController);
 router.get("/getActivosByEstado", getActivosByEstadoController);
 router.put("/finalizar/:id", finalizarMantenimientoController);
 router.put("/updateEstadoActivo/:id", updateEstadoActivoController);
+router.put('/:activoId/finalizarAct', updateEstadoMantenimientoActivoController);
 
 export default router;

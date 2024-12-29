@@ -126,3 +126,28 @@ export const updateActivoEstado = async (id) => {
     throw error;
   }
 };
+
+export const finalizarMantenimientoActivo = async (activoId) => {
+  try {
+    // Actualizar el estado del mantenimiento en la tabla DETALLES_MANTENIMIENTO
+    const queryMantenimiento = `
+      UPDATE DETALLES_MANTENIMIENTO
+      SET EST_DET_MANT = 'Finalizado'
+      WHERE id_det_mant = ? AND EST_DET_MANT != 'Finalizado'`; 
+
+    // Realizamos la consulta para actualizar el estado del mantenimiento
+    const [mantenimientoResult] = await pool.query(queryMantenimiento, [activoId]);
+
+    // Si no se actualizó ningún registro, el activo no estaba en mantenimiento o ya estaba finalizado
+    if (mantenimientoResult.affectedRows === 0) {
+      return mantenimientoResult; // Si no se actualizó nada, devolvemos el resultado
+    }
+
+    // Puedes agregar más lógica si es necesario, como actualizar el estado del activo o realizar otras actualizaciones
+
+    return mantenimientoResult; // Retornamos el resultado de la consulta
+  } catch (error) {
+    console.error("Error al finalizar mantenimiento y actualizar el estado del activo:", error);
+    throw error; // Lanzamos el error para ser capturado por el controlador
+  }
+};

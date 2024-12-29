@@ -2,10 +2,11 @@ import {
   addDetallesMantenimiento,
   addMantenimiento,
   finalizarMantenimiento,
+  finalizarMantenimientoActivo,
   getActivosByEstado,
   getDetallesMantenimiento,
   getMantenimientos,
-  updateActivoEstado,
+  updateActivoEstado
 } from "../models/mantenimientosModel.js";
 
 export const addMantenimientoController = async (req, res) => {
@@ -142,5 +143,25 @@ export const updateEstadoActivoController = async (req, res) => {
       .json({ success: true, message: "Activo updated successfully" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Error updating activo" });
+  }
+};
+
+export const updateEstadoMantenimientoActivoController = async (req, res) => {
+  const { activoId } = req.params;
+  try {
+    // Llamar a la función del modelo para finalizar el mantenimiento
+    const result = await finalizarMantenimientoActivo(activoId);
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Activo no encontrado o ya finalizado" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Mantenimiento finalizado correctamente" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error al finalizar mantenimiento" });
   }
 };

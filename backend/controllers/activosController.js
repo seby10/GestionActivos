@@ -3,6 +3,8 @@ import {
   getActivoByIdFromDB,
   updateActivo,
   addActivo,
+  fetchActivoData, 
+  updateActivoRelacionesInDB 
 } from "../models/activosModel.js";
 
 
@@ -111,5 +113,29 @@ export const addActivosFromExcel = async (req, res) => {
   } catch (error) {
     console.error('Error al cargar los activos:', error);
     res.status(500).json({ message: 'Hubo un error al cargar los activos', error: error.message });
+  }
+};
+
+export const getActivo = async (req, res) => {
+  const { id,idMant } = req.params;
+  try {
+      const data = await fetchActivoData(id,idMant);
+      res.status(200).json(data);
+  } catch (error) {
+      console.error("Error al obtener datos del activo:", error);
+      res.status(500).json({ message: "Error al obtener datos del activo." });
+  }
+};
+
+export const updateActivoRelaciones = async (req, res) => {
+  const { id } = req.params;
+  const { actividadesSeleccionadas, componentesSeleccionados } = req.body;
+
+  try {
+      await updateActivoRelacionesInDB(id, actividadesSeleccionadas, componentesSeleccionados);
+      res.status(200).send('Relaciones actualizadas correctamente');
+  } catch (error) {
+      console.error("Error al actualizar relaciones del activo:", error);
+      res.status(500).json({ message: "Error al actualizar relaciones del activo." });
   }
 };
