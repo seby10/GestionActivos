@@ -6,6 +6,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   IconButton,
   Collapse,
   Box,
@@ -29,6 +30,7 @@ import {
   KeyboardArrowDown,
   KeyboardArrowUp,
 } from "@mui/icons-material";
+import ClearIcon from '@mui/icons-material/Clear';
 import ActivoModal from "./ActivoModal";
 import { mantenimientosServices } from "../services/mantenimientosServices.js";
 
@@ -160,7 +162,7 @@ const MaintenanceRow = ({ maintenance, onUpdate, showAlert }) => {
               display: "inline-block",
             }}
           >
-            {maintenance.ID_TEC_INT === null ? "EXTERNO" : "INTERNO"}
+            {maintenance.ID_TEC_INT === null ? "Externo" : "Interno"}
           </Typography>
         </StyledTableCell>
         <StyledTableCell>
@@ -317,6 +319,65 @@ const ExpandableTable = () => {
 
   //const [filterType, setFilterType] = useState('');
 
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const clearAllFilters = () => {
+    setFilterCode("");
+    setFilterTechnician("");
+    setFilterDate("");
+    setFilterStatus("");
+    setPage(0);
+  };
+
+  // Obtener mantenimientos filtrados y paginados
+  const getFilteredMaintenances = () => {
+    const filtered = maintenances.filter((maintenance) => {
+      const matchCode = maintenance.COD_MANT.toLowerCase().includes(
+        filterCode.toLowerCase()
+      );
+      const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || "")
+        .toLowerCase()
+        .includes(filterTechnician.toLowerCase());
+      const matchDate =
+        !filterDate || maintenance.FEC_INI_MANT.includes(filterDate);
+      const matchStatus =
+        !filterStatus ||
+        maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
+
+      return matchCode && matchTechnician && matchDate && matchStatus;
+    });
+
+    return filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  };
+
+  const getFilteredCount = () => {
+    return maintenances.filter((maintenance) => {
+      const matchCode = maintenance.COD_MANT.toLowerCase().includes(
+        filterCode.toLowerCase()
+      );
+      const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || "")
+        .toLowerCase()
+        .includes(filterTechnician.toLowerCase());
+      const matchDate =
+        !filterDate || maintenance.FEC_INI_MANT.includes(filterDate);
+      const matchStatus =
+        !filterStatus ||
+        maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
+
+      return matchCode && matchTechnician && matchDate && matchStatus;
+    }).length;
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   const showAlert = (message, severity = "error") => {
     setAlertMessage(message);
     setAlertSeverity(severity);
@@ -348,25 +409,6 @@ const ExpandableTable = () => {
     }
 
     return true;
-  };
-
-  const getFilteredMaintenances = () => {
-    return maintenances.filter((maintenance) => {
-      const matchCode = maintenance.COD_MANT.toLowerCase().includes(
-        filterCode.toLowerCase()
-      );
-      const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || "")
-        .toLowerCase()
-        .includes(filterTechnician.toLowerCase());
-      const matchDate =
-        !filterDate || maintenance.FEC_INI_MANT.includes(filterDate);
-      const matchStatus =
-        !filterStatus ||
-        maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
-      //const matchType = !filterType || maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
-
-      return matchCode && matchTechnician && matchDate && matchStatus;
-    });
   };
 
   const fetchTechnicians = async (type) => {
@@ -548,6 +590,24 @@ const ExpandableTable = () => {
           <MenuItem value="En ejecucion">En ejecucion</MenuItem>
           <MenuItem value="Finalizado">Finalizado</MenuItem>
         </TextField>
+
+        <Button
+          variant="outlined"
+          onClick={clearAllFilters}
+          startIcon={<ClearIcon />}
+          sx={{
+            minWidth: "150px",
+            ml: "auto",
+            borderColor: (theme) => theme.palette.grey[300],
+            color: (theme) => theme.palette.grey[700],
+            '&:hover': {
+              borderColor: (theme) => theme.palette.grey[400],
+              backgroundColor: (theme) => theme.palette.grey[100],
+            }
+          }}
+        >
+          Limpiar Filtros
+        </Button>
       </Paper>
 
       <Dialog
@@ -619,15 +679,15 @@ const ExpandableTable = () => {
           >
             {technicalType === "internal"
               ? internalUsers.map((user) => (
-                  <MenuItem key={user.ID_USU} value={user.ID_USU}>
-                    {user.NOM_USU}
-                  </MenuItem>
-                ))
+                <MenuItem key={user.ID_USU} value={user.ID_USU}>
+                  {user.NOM_USU}
+                </MenuItem>
+              ))
               : externalProviders.map((provider) => (
-                  <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
-                    {provider.NOM_PRO}
-                  </MenuItem>
-                ))}
+                <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
+                  {provider.NOM_PRO}
+                </MenuItem>
+              ))}
           </TextField>
 
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
@@ -667,7 +727,7 @@ const ExpandableTable = () => {
             </Table>
           </TableContainer>
         </DialogContent>
-        <DialogActions sx={{ marginBottom: "20px", marginTop: "20px",marginLeft: "20px" }}>
+        <DialogActions sx={{ marginBottom: "20px", marginTop: "20px", marginLeft: "20px" }}>
           <Button onClick={handleCloseModal}>Cancelar</Button>
           <Button variant="contained" onClick={handleSaveMaintenance}>
             Guardar
@@ -675,65 +735,107 @@ const ExpandableTable = () => {
         </DialogActions>
       </Dialog>
 
-      <TableContainer
-        component={Paper}
-        sx={{
-          mt: 2,
-          boxShadow: 3,
-          borderRadius: 2,
-          overflow: "hidden",
-        }}
-      >
-        <Table>
-          <StyledTableHead>
-            <TableRow>
-              <TableCell />
-              <TableCell>Código</TableCell>
-              <TableCell>Descripción</TableCell>
-              <TableCell>Fecha de Inicio</TableCell>
-              <TableCell>Técnico</TableCell>
-              <TableCell>Tipo</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell></TableCell>
-            </TableRow>
-          </StyledTableHead>
-          <TableBody>
-            {loading ? (
+      <Paper sx={{
+        mt: 2,
+        boxShadow: 3,
+        borderRadius: 2,
+        overflow: 'hidden'
+      }}>
+        <TableContainer>
+          <Table>
+            <StyledTableHead>
               <TableRow>
-                <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
-                  <CircularProgress />
-                </TableCell>
+                <TableCell />
+                <TableCell>Código</TableCell>
+                <TableCell>Descripción</TableCell>
+                <TableCell>Fecha de Inicio</TableCell>
+                <TableCell>Técnico</TableCell>
+                <TableCell>Tipo</TableCell>
+                <TableCell>Estado</TableCell>
+                <TableCell></TableCell>
               </TableRow>
-            ) : (
-              getFilteredMaintenances().map((maintenance) => (
-                <MaintenanceRow
-                  key={maintenance.ID_MANT}
-                  maintenance={maintenance}
-                  onUpdate={fetchMaintenances}
-                  showAlert={showAlert}
-                />
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Snackbar
-        open={alertOpen}
-        autoHideDuration={6000}
-        onClose={() => setAlertOpen(false)}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }}
-      >
-        <Alert
+            </StyledTableHead>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                    <CircularProgress />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                getFilteredMaintenances().map((maintenance) => (
+                  <MaintenanceRow
+                    key={maintenance.ID_MANT}
+                    maintenance={maintenance}
+                    onUpdate={fetchMaintenances}
+                    showAlert={showAlert}
+                  />
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <Box sx={{
+          borderTop: '1px solid rgba(224, 224, 224, 1)',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          width: '100%'
+        }}>
+          <TablePagination
+            component="div"
+            rowsPerPageOptions={[5, 10, 25]}
+            count={getFilteredCount()}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            labelRowsPerPage="Filas por página"
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
+            }
+            sx={{
+              '.MuiTablePagination-toolbar': {
+                minHeight: '52px',
+                alignItems: 'center',
+                pr: 2,
+                pl: 2
+              },
+              '.MuiTablePagination-selectLabel': {
+                m: 0
+              },
+              '.MuiTablePagination-displayedRows': {
+                m: 0
+              },
+              '.MuiTablePagination-select': {
+                mr: 2
+              },
+              '.MuiTablePagination-actions': {
+                ml: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1
+              }
+            }}
+          />
+        </Box>
+        <Snackbar
+          open={alertOpen}
+          autoHideDuration={6000}
           onClose={() => setAlertOpen(false)}
-          severity={alertSeverity}
-          sx={{ width: "100%" }}
-          elevation={6}
-          variant="filled"
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
         >
-          {alertMessage}
-        </Alert>
-      </Snackbar>
+          <Alert
+            onClose={() => setAlertOpen(false)}
+            severity={alertSeverity}
+            sx={{ width: "100%" }}
+            elevation={6}
+            variant="filled"
+          >
+            {alertMessage}
+          </Alert>
+        </Snackbar>
+      </Paper>
     </Box>
   );
 };
