@@ -4,9 +4,13 @@ import {
   finalizarMantenimiento,
   finalizarMantenimientoActivo,
   getActivosByEstado,
+  getActivosByEstadoD,
   getDetallesMantenimiento,
   getMantenimientos,
-  updateActivoEstado
+  updateActivoEstado,
+  updateActivoEstadoD,
+  removeAssetFromMaintenance,
+  canRemoveAssetFromMaintenance,
 } from "../models/mantenimientosModel.js";
 
 export const addMantenimientoController = async (req, res) => {
@@ -104,6 +108,17 @@ export const getActivosByEstadoController = async (req, res) => {
   }
 };
 
+
+export const getActivosByEstadoControllerD = async (req, res) => {
+  try {
+    const activos = await getActivosByEstadoD();
+    res.status(200).json(activos);
+  } catch (error) {
+    console.error("Error al obtener los activos:", error);
+    res.status(500).json({ message: "Error al obtener los activos." });
+  }
+};
+
 export const getMantenimientosController = async (req, res) => {
   try {
     const activos = await getMantenimientos();
@@ -146,6 +161,25 @@ export const updateEstadoActivoController = async (req, res) => {
   }
 };
 
+export const updateEstadoActivoControllerD = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await updateActivoEstadoD(id);
+
+    if (result.affectedRows === 0) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Activo not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Activo updated successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error updating activo" });
+  }
+};
+
 export const updateEstadoMantenimientoActivoController = async (req, res) => {
   const { activoId } = req.params;
   try {
@@ -163,5 +197,43 @@ export const updateEstadoMantenimientoActivoController = async (req, res) => {
       .json({ success: true, message: "Mantenimiento finalizado correctamente" });
   } catch (error) {
     res.status(500).json({ success: false, message: "Error al finalizar mantenimiento" });
+  }
+};
+
+export const canRemoveAssetFromMaintenanceController = async (req, res) => {
+  const { maintenanceId, assetId } = req.params;
+  try {
+    const canRemove = await canRemoveAssetFromMaintenance(maintenanceId, assetId);
+    res.status(200).json({ canRemove });
+  } catch (error) {
+    console.error("Error checking if asset can be removed:", error);
+    res.status(500).json({ error: "Error al verificar si el activo puede ser eliminado" });
+  }
+};
+
+export const removeAssetFromMaintenanceController = async (req, res) => {
+  const { maintenanceId, assetId } = req.params;
+  try {
+    const canRemove = await canRemoveAssetFromMaintenance(maintenanceId, assetId);
+    if (!canRemove) {
+      return res.status(400).json({ error: "No se puede eliminar este activo porque tiene actividades o componentes asociados." });
+    }
+    await removeAssetFromMaintenance(maintenanceId, assetId);
+    res.status(200).json({ message: "Activo eliminado del mantenimiento exitosamente" });
+  } catch (error) {
+    console.error("Error removing asset from maintenance:", error);
+    res.status(500).json({ error: "Error al eliminar el activo del mantenimiento" });
+  }
+};
+
+
+export const updateMaintenanceController = async (req, res) => {
+  const maintenance = req.body;
+  try {
+      const updatedMaintenance = await updateMaintenance(maintenance);
+      res.status(200).json(updatedMaintenance);
+  } catch (error) {
+      console.error("Error updating maintenance:", error);
+      res.status(500).json({ error: "Error updating maintenance" });
   }
 };
