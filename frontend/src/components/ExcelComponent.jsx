@@ -13,9 +13,9 @@ const ExcelComponent = ({ onDataUpload }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
+    COD_ACT: "",
     NOM_ACT: "",
     MAR_ACT: "",
-    MOD_ACT: "",
     CAT_ACT: "",
     UBI_ACT: "",
     EST_ACT: "",
@@ -28,9 +28,9 @@ const ExcelComponent = ({ onDataUpload }) => {
   
 
   const expectedExcelFields = [
+    "COD_ACT",
     "NOM_ACT",
     "MAR_ACT",
-    "MOD_ACT",
     "CAT_ACT",
     "UBI_ACT",
     "EST_ACT",
@@ -38,9 +38,9 @@ const ExcelComponent = ({ onDataUpload }) => {
   ];
 
   const requiredFormFields = [
+    "COD_ACT",
     "NOM_ACT",
     "MAR_ACT",
-    "MOD_ACT",
     "CAT_ACT",
     "UBI_ACT",
     "EST_ACT",
@@ -116,47 +116,64 @@ const ExcelComponent = ({ onDataUpload }) => {
   };
 
   const handleConfirmUpload = async () => {
-    const activos = excelData.rows.map((row, index) => {
-      console.log(`Fila ${index}:`, row);
-      return {
-        NOM_ACT: row[0],
-        MAR_ACT: row[1],
-        MOD_ACT: row[2],
-        CAT_ACT: row[3],
-        UBI_ACT: row[4],
-        EST_ACT: row[5],
-        ID_PRO: row[6],
-        PC_ACT: formData.PC_ACT,
-      };
-    });
-    console.log("Datos a enviar:", activos);
+    const activosValidos = excelData.rows
+      .map((row) => {
+        const esFilaValida = expectedExcelFields.every((_, index) =>
+          row[index] !== undefined && row[index] !== null && row[index].toString().trim() !== ""
+        );
+  
+        if (!esFilaValida) {
+          return null;
+        }
+  
+        return {
+          COD_ACT: row[0],
+          NOM_ACT: row[1],
+          MAR_ACT: row[2],
+          CAT_ACT: row[3],
+          UBI_ACT: row[4],
+          EST_ACT: row[5],
+          ID_PRO: row[6],
+          PC_ACT: formData.PC_ACT,
+        };
+      })
+      .filter((activo) => activo !== null); 
+  
+    if (activosValidos.length === 0) {
+      setAlertMessage("No hay datos válidos para subir.");
+      setAlertSeverity("error");
+      setShowAlert(true);
+      return;
+    }
+  
+    // console.log("Datos a enviar:", activosValidos);
   
     try {
       const response = await axios.post(
         "http://localhost:3000/api/activos/excel",
-        activos
+        activosValidos
       );
       console.log("Respuesta de la API:", response.data);
   
-      if (response.data && response.data.message) {
-        setAlertMessage(response.data.message);
-        setAlertSeverity("success"); 
+      if (response.data.activosValidos > 0) {
+        setAlertMessage("Datos cargados correctamente.");
+        setAlertSeverity("success");
         setShowAlert(true);
-        onDataUpload();
-        handleCloseModal();
+        onDataUpload(); 
+        handleCloseModal(); 
       } else {
-        setAlertMessage("Error en la carga de datos");
-        setAlertSeverity("error"); 
+        setAlertMessage("Error: Ningún activo fue agregado. Verifica los códigos.");
+        setAlertSeverity("error");
         setShowAlert(true);
-        onDataUpload();
-        handleCloseModal();
       }
     } catch (error) {
-      setAlertMessage("Hubo un error al cargar los activos");
+      console.error("Error al cargar los activos:", error);
+      setAlertMessage("Hubo un error al cargar los activos. Intenta nuevamente.");
       setAlertSeverity("error");
-      setShowAlert(true); 
+      setShowAlert(true);
     }
   };
+  
   
   const handleCloseModal = () => {
     setFile(null);
@@ -165,9 +182,9 @@ const ExcelComponent = ({ onDataUpload }) => {
     setShowPreview(false);
     setStep(0);
     setFormData({
+      COD_ACT:"",
       NOM_ACT: "",
       MAR_ACT: "",
-      MOD_ACT: "",
       CAT_ACT: "",
       UBI_ACT: "",
       EST_ACT: "",
@@ -364,15 +381,15 @@ const ExcelComponent = ({ onDataUpload }) => {
                       />
                     </div>
                     <div className="mb-3">
-                      <label htmlFor="MOD_ACT" className="form-label">
+                      <label htmlFor="COD_ACT" className="form-label">
                         Modelo del activo
                       </label>
                       <input
                         type="text"
                         className="form-control"
-                        id="MOD_ACT"
-                        name="MOD_ACT"
-                        value={formData.MOD_ACT}
+                        id="COD_ACT"
+                        name="COD_ACT"
+                        value={formData.COD_ACT}
                         onChange={handleInputChange}
                       />
                     </div>
