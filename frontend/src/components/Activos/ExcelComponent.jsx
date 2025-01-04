@@ -116,7 +116,7 @@ const ExcelComponent = ({ onDataUpload }) => {
 
   const handleConfirmUpload = async () => {
     const activos = excelData.rows.map((row, index) => {
-      console.log(`Fila ${index}:`, row);
+      // console.log(`Fila ${index}:`, row);
       return {
         COD_ACT: row[0],
         NOM_ACT: row[1],
@@ -128,7 +128,7 @@ const ExcelComponent = ({ onDataUpload }) => {
         PC_ACT: formData.PC_ACT,
       };
     });
-    console.log("Datos a enviar:", activos);
+    // console.log("Datos a enviar:", activos);
 
     try {
       const response = await axios.post(
