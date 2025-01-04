@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Snackbar, Alert } from "@mui/material";
+import { Snackbar, Alert, Button } from "@mui/material";
+import ClearIcon from "@mui/icons-material/Clear";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPen } from "@fortawesome/free-solid-svg-icons";
+import { faPen, faHistory } from "@fortawesome/free-solid-svg-icons";
 import { faArrowLeft, faArrowRight } from "@fortawesome/free-solid-svg-icons";
 import ExcelComponent from "./ExcelComponent";
+import ActivoHistorialModal from "./ActivoHistorialModal";
 
 const ActivosTable = () => {
   const [isEdited, setIsEdited] = useState(false);
@@ -19,7 +21,8 @@ const ActivosTable = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const itemsPerPage = 10;
-
+  const [modalActivoId, setModalActivoId] = useState(null);
+  const [modalActivoCod, setModalActivoCod] = useState(null);
   const [activoToEdit, setActivoToEdit] = useState(null);
   const [updatedActivo, setUpdatedActivo] = useState({});
   const user = JSON.parse(localStorage.getItem("user"));
@@ -93,6 +96,13 @@ const ActivosTable = () => {
 
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+  };
+  const handleClearFilters = () => {
+    setSearchQuery(""); // Limpia la búsqueda por nombre
+    setSearchCodeQuery(""); // Limpia la búsqueda por código
+    setFilterCategory(""); // Limpia el filtro de categoría
+    setFilterLocation(""); // Limpia el filtro de ubicación
+    setCurrentPage(1); // Vuelve a la primera página
   };
 
   const handleSearch = (e) => {
@@ -175,7 +185,14 @@ const ActivosTable = () => {
       setShowAlert(true);
     }
   };
+  const openModal = (activo) => {
+    setModalActivoId(activo.ID_ACT);
+    setModalActivoCod(activo.COD_ACT);
+  };
 
+  const closeModal = () => {
+    setModalActivoId(null);
+  };
   return (
     <div className="container-fluid my-5">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -185,77 +202,106 @@ const ActivosTable = () => {
           )}
         </div>
       </div>
-      <div  className="card p-4">
+      <div className="card p-4">
         <header className="mb-4">
           {/* Barra de búsqueda y selectores */}
-          <div className="d-flex gap-3 mb-4" style={{ maxWidth: "800px" }}>
-            <input
-              type="text"
-              placeholder="Código..."
-              value={searchCodeQuery}
-              onChange={handleCodeSearch}
-              className="form-control"
-              style={{ flex: "1 1 auto" }}
-            />
-            <input
-              type="text"
-              placeholder="Nombre..."
-              value={searchQuery}
-              onChange={handleSearch}
-              className="form-control"
-              style={{ flex: "1 1 auto" }}
-            />
-            <select
-              value={filterCategory}
-              onChange={handleCategoryChange}
-              className="form-select"
-              style={{ flex: "1 1 auto" }}
-            >
-              <option value="">Todas las categorías</option>
-              <option value="informático">Informático</option>
-              <option value="mueble">Mueble</option>
-              <option value="electrónico">Electrónico</option>
-              <option value="vehículo">Vehículo</option>
-              <option value="mobiliario de oficina">
-                Mobiliario de Oficina
-              </option>
-              <option value="herramienta">Herramienta</option>
-              <option value="equipamiento médico">Equipamiento Médico</option>
-              <option value="equipos de comunicación">
-                Equipos de Comunicación
-              </option>
-              <option value="instrumento de laboratorio">
-                Instrumento de Laboratorio
-              </option>
-              <option value="equipo de producción">Equipo de Producción</option>
-              <option value="equipo de seguridad">Equipo de Seguridad</option>
-              <option value="otros">Otros</option>
-            </select>
-            <select
-              value={filterLocation}
-              onChange={handleLocationChange}
-              className="form-select"
-              style={{ flex: "1 1 auto" }}
-            >
-              <option value="">Todas las ubicaciones</option>
-              <option value="Laboratorio A">Laboratorio A</option>
-              <option value="Laboratorio B">Laboratorio B</option>
-              <option value="Laboratorio C">Laboratorio C</option>
-              <option value="Laboratorio D">Laboratorio D</option>
-              <option value="Aula 1">Aula 1</option>
-              <option value="Aula 2">Aula 2</option>
-              <option value="Aula 3">Aula 3</option>
-              <option value="Aula 4">Aula 4</option>
-              <option value="Oficina Principal">Oficina Principal</option>
-              <option value="Oficina Secundaria">Oficina Secundaria</option>
-              <option value="Sala de Juntas">Sala de Juntas</option>
-              <option value="Almacén">Almacén</option>
-              <option value="Taller">Taller</option>
-              <option value="Recepción">Recepción</option>
-              <option value="Pasillo Principal">Pasillo Principal</option>
-            </select>
+          <div
+            className="d-flex flex-wrap gap-3 mb-4"
+            style={{ maxWidth: "100%" }}
+          >
+            <div className="flex-fill" style={{ maxWidth: "250px" }}>
+              <input
+                type="text"
+                placeholder="Código..."
+                value={searchCodeQuery}
+                onChange={handleCodeSearch}
+                className="form-control"
+              />
+            </div>
+            <div className="flex-fill" style={{ maxWidth: "250px" }}>
+              <input
+                type="text"
+                placeholder="Nombre..."
+                value={searchQuery}
+                onChange={handleSearch}
+                className="form-control"
+              />
+            </div>
+            <div className="flex-fill" style={{ maxWidth: "250px" }}>
+              <select
+                value={filterCategory}
+                onChange={handleCategoryChange}
+                className="form-select"
+              >
+                <option value="">Todas las categorías</option>
+                <option value="informático">Informático</option>
+                <option value="mueble">Mueble</option>
+                <option value="electrónico">Electrónico</option>
+                <option value="vehículo">Vehículo</option>
+                <option value="mobiliario de oficina">
+                  Mobiliario de Oficina
+                </option>
+                <option value="herramienta">Herramienta</option>
+                <option value="equipamiento médico">Equipamiento Médico</option>
+                <option value="equipos de comunicación">
+                  Equipos de Comunicación
+                </option>
+                <option value="instrumento de laboratorio">
+                  Instrumento de Laboratorio
+                </option>
+                <option value="equipo de producción">
+                  Equipo de Producción
+                </option>
+                <option value="equipo de seguridad">Equipo de Seguridad</option>
+                <option value="otros">Otros</option>
+              </select>
+            </div>
+            <div className="flex-fill" style={{ maxWidth: "250px" }}>
+              <select
+                value={filterLocation}
+                onChange={handleLocationChange}
+                className="form-select"
+              >
+                <option value="">Todas las ubicaciones</option>
+                <option value="Laboratorio A">Laboratorio A</option>
+                <option value="Laboratorio B">Laboratorio B</option>
+                <option value="Laboratorio C">Laboratorio C</option>
+                <option value="Laboratorio D">Laboratorio D</option>
+                <option value="Aula 1">Aula 1</option>
+                <option value="Aula 2">Aula 2</option>
+                <option value="Aula 3">Aula 3</option>
+                <option value="Aula 4">Aula 4</option>
+                <option value="Oficina Principal">Oficina Principal</option>
+                <option value="Oficina Secundaria">Oficina Secundaria</option>
+                <option value="Sala de Juntas">Sala de Juntas</option>
+                <option value="Almacén">Almacén</option>
+                <option value="Taller">Taller</option>
+                <option value="Recepción">Recepción</option>
+                <option value="Pasillo Principal">Pasillo Principal</option>
+              </select>
+            </div>
+            {/* Botón para limpiar filtros */}
+            <div className="ms-auto d-flex align-items-center">
+              <Button
+                variant="outlined"
+                onClick={handleClearFilters}
+                startIcon={<ClearIcon />}
+                sx={{
+                  minWidth: "150px",
+                  borderColor: (theme) => theme.palette.grey[300],
+                  color: (theme) => theme.palette.grey[700],
+                  "&:hover": {
+                    borderColor: (theme) => theme.palette.grey[400],
+                    backgroundColor: (theme) => theme.palette.grey[100],
+                  },
+                }}
+              >
+                Limpiar Filtros
+              </Button>
+            </div>
           </div>
         </header>
+
         {loading ? (
           <p>Cargando activos...</p>
         ) : error ? (
@@ -265,7 +311,7 @@ const ActivosTable = () => {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Código</th>
+                  <th style={{ textAlign: "center" }}>Código</th>
                   <th onClick={toggleSortOrder} style={{ cursor: "pointer" }}>
                     Nombre {sortOrder === "asc" ? "▲" : "▼"}
                   </th>
@@ -275,7 +321,7 @@ const ActivosTable = () => {
                   <th>Estado</th>
                   <th>Proceso de Compra</th>
                   <th>Proveedor</th>
-                  <th>Acciones</th>
+                  <th style={{ textAlign: "center" }}>Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -301,10 +347,27 @@ const ActivosTable = () => {
                           <button
                             className="btn btn-outline-primary"
                             onClick={() => handleEdit(activo)}
+                            style={{ margin: "10px" }}
                           >
-                            <FontAwesomeIcon icon={faPen} /> Editar
+                            <FontAwesomeIcon
+                              icon={faPen}
+                              style={{ marginRight: "5px" }}
+                            />
+                            {"Editar"}
                           </button>
                         )}
+
+                        <button
+                          className="btn btn-outline-info"
+                          onClick={() => openModal(activo)}
+                          style={{ margin: "10px" }}
+                        >
+                          <FontAwesomeIcon
+                            icon={faHistory}
+                            style={{ marginRight: "5px" }}
+                          />
+                          {"Ver Historial"}
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -312,6 +375,13 @@ const ActivosTable = () => {
               </tbody>
             </table>
           </div>
+        )}
+        {modalActivoId && (
+          <ActivoHistorialModal
+            activoId={modalActivoId}
+            activoCod={modalActivoCod}
+            closeModal={closeModal}
+          />
         )}
         {activoToEdit && (
           <div
@@ -491,6 +561,7 @@ const ActivosTable = () => {
             </div>
           </div>
         )}
+
         {/* Paginación */}
         <div className="d-flex justify-content-center mt-3">
           <button
@@ -513,7 +584,7 @@ const ActivosTable = () => {
                 backgroundColor:
                   currentPage === i + 1 ? "#007bff" : "transparent",
                 border: "none",
-                color: currentPage === i + 1 ? "#fff" : "#6c757d", // cambiar color de texto cuando no es activo
+                color: currentPage === i + 1 ? "#fff" : "#6c757d",
               }}
             >
               {i + 1}
@@ -557,7 +628,7 @@ const ActivosTable = () => {
             width: 100%;
             border-collapse: collapse;
             border-radius: 10px;
-            overflow: hidden
+            overflow: hidden;
           }
 
           .table th,

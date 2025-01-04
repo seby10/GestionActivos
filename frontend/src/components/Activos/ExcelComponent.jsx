@@ -246,10 +246,11 @@ const ExcelComponent = ({ onDataUpload }) => {
   return (
     <div className="d-flex align-items-center">
       <button
-        className="btn btn-primary ms-3 d-flex align-items-center"
+        className="btn ms-3 d-flex align-items-center"
+        style={{ backgroundColor: "#1976d2", color: "white", border: "none" }}
         onClick={() => setShowModal(true)}
       >
-        <i className="bi bi-plus-circle me-2"></i> Agregar Nuevo Activo
+        <i className="bi bi-plus-circle me-2"></i> AGREGAR ACTIVO
       </button>
 
       {showModal && (
@@ -490,8 +491,8 @@ const ExcelComponent = ({ onDataUpload }) => {
                       >
                         <option value="">Seleccione el estado</option>
                         <option value="Disponible">Disponible</option>
-                      <option value="En Mantenimiento">Mantenimiento</option>
-                      <option value="Nuevo">Nuevo</option>
+                        <option value="En Mantenimiento">Mantenimiento</option>
+                        <option value="Nuevo">Nuevo</option>
                       </select>
                     </div>
                     <div className="mb-3">
