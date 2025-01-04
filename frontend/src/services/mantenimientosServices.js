@@ -77,6 +77,19 @@ export const mantenimientosServices = {
     }
   },
 
+  changeStatusAssetsD: async (assetId) => {
+    try {
+      const response = await axios.put(
+        `http://localhost:3000/api/mantenimientos/updateEstadoActivoD/${assetId}`
+      );
+      console.log(response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error changing assets status to in mainteinance:", error);
+      throw error;
+    }
+  },
+
   finishMaintenance: async (maintenanceId) => {
     try {
       const response = await axios.put(
@@ -133,6 +146,56 @@ export const mantenimientosServices = {
       return response.data;
     } catch (error) {
       console.error("Error fetching logged in user:", error);
+      throw error;
+    }
+  },
+
+  getAvailableAssets: async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/mantenimientos/getActivosByEstado`);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching available assets:", error);
+      throw error;
+    }
+  },
+
+
+  canRemoveAssetFromMaintenance: async (maintenanceId, assetId) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/mantenimientos/${maintenanceId}/assets/${assetId}/canRemove`);
+      return response.data.canRemove;
+    } catch (error) {
+      console.error("Error checking if asset can be removed:", error);
+      throw error;
+    }
+  },
+
+  removeAssetFromMaintenance: async (maintenanceId, assetId) => {
+    try {
+      await axios.delete(`${BASE_URL}/mantenimientos/${maintenanceId}/assets/${assetId}`);
+    } catch (error) {
+      console.error("Error removing asset from maintenance:", error);
+      throw error;
+    }
+  },
+
+  updateMaintenance: async (maintenance) => {
+    try {
+      const response = await axios.put(`${BASE_URL}/mantenimientos/${maintenance.ID_MANT}`, maintenance);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating maintenance:", error);
+      throw error;
+    }
+  },
+
+  updateAssetStatus: async (assetId, newStatus) => {
+    try {
+      const response = await axios.put(`${BASE_URL}/activos/updateStatus/${assetId}`, { newStatus });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating asset status:", error);
       throw error;
     }
   },

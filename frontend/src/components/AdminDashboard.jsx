@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import ActivosTable from './Activos/ActivosTable';
-import MantenimientosTable from './MantenimientosTable';
+import MantenimientosTable from './mantenimientosTable';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
