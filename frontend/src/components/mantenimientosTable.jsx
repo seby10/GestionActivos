@@ -30,10 +30,10 @@ import {
   KeyboardArrowDown,
   KeyboardArrowUp,
 } from "@mui/icons-material";
-import ClearIcon from '@mui/icons-material/Clear';
+import ClearIcon from "@mui/icons-material/Clear";
 import ActivoModal from "./ActivoModal";
 import { mantenimientosServices } from "../services/mantenimientosServices.js";
-import UpdateMaintenanceModal from '../components/UpdateMaintenanceModal';
+import UpdateMaintenanceModal from "../components/UpdateMaintenanceModal";
 
 const StyledTableHead = styled(TableHead)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
@@ -64,7 +64,12 @@ const formatDate = (dateString) => {
 };
 
 // Componente de fila de mantenimiento
-const MaintenanceRow = ({ maintenance, onUpdate, showAlert, handleOpenUpdateModal }) => {
+const MaintenanceRow = ({
+  maintenance,
+  onUpdate,
+  showAlert,
+  handleOpenUpdateModal,
+}) => {
   const [open, setOpen] = useState(false);
   const [assets, setAssets] = useState([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
@@ -233,19 +238,19 @@ const MaintenanceRow = ({ maintenance, onUpdate, showAlert, handleOpenUpdateModa
           </Button>
         </StyledTableCell>
         <StyledTableCell>
-        <Button
-          variant="contained"
-          onClick={() => handleOpenUpdateModal(maintenance)}
-          disabled={maintenance.ESTADO_MANT !== "En ejecucion"}
-          sx={{
-            backgroundColor: (theme) => theme.palette.primary.main,
-            "&:hover": {
-              backgroundColor: (theme) => theme.palette.primary.dark,
-            },
-          }}
-        >
-          Actualizar
-        </Button>
+          <Button
+            variant="contained"
+            onClick={() => handleOpenUpdateModal(maintenance)}
+            disabled={maintenance.ESTADO_MANT !== "En ejecucion"}
+            sx={{
+              backgroundColor: (theme) => theme.palette.primary.main,
+              "&:hover": {
+                backgroundColor: (theme) => theme.palette.primary.dark,
+              },
+            }}
+          >
+            Actualizar
+          </Button>
         </StyledTableCell>
       </TableRow>
       <TableRow>
@@ -552,6 +557,11 @@ const ExpandableTable = () => {
     setUpdateModalOpen(true);
   };
 
+  const handleCloseUpdateModal = () => {
+    fetchMaintenances();
+    setUpdateModalOpen(false);
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Button
@@ -623,10 +633,10 @@ const ExpandableTable = () => {
             ml: "auto",
             borderColor: (theme) => theme.palette.grey[300],
             color: (theme) => theme.palette.grey[700],
-            '&:hover': {
+            "&:hover": {
               borderColor: (theme) => theme.palette.grey[400],
               backgroundColor: (theme) => theme.palette.grey[100],
-            }
+            },
           }}
         >
           Limpiar Filtros
@@ -702,15 +712,15 @@ const ExpandableTable = () => {
           >
             {technicalType === "internal"
               ? internalUsers.map((user) => (
-                <MenuItem key={user.ID_USU} value={user.ID_USU}>
-                  {user.NOM_USU}
-                </MenuItem>
-              ))
+                  <MenuItem key={user.ID_USU} value={user.ID_USU}>
+                    {user.NOM_USU}
+                  </MenuItem>
+                ))
               : externalProviders.map((provider) => (
-                <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
-                  {provider.NOM_PRO}
-                </MenuItem>
-              ))}
+                  <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
+                    {provider.NOM_PRO}
+                  </MenuItem>
+                ))}
           </TextField>
 
           <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
@@ -750,7 +760,9 @@ const ExpandableTable = () => {
             </Table>
           </TableContainer>
         </DialogContent>
-        <DialogActions sx={{ marginBottom: "20px", marginTop: "20px", marginLeft: "20px" }}>
+        <DialogActions
+          sx={{ marginBottom: "20px", marginTop: "20px", marginLeft: "20px" }}
+        >
           <Button onClick={handleCloseModal}>Cancelar</Button>
           <Button variant="contained" onClick={handleSaveMaintenance}>
             Guardar
@@ -758,12 +770,14 @@ const ExpandableTable = () => {
         </DialogActions>
       </Dialog>
 
-      <Paper sx={{
-        mt: 2,
-        boxShadow: 3,
-        borderRadius: 2,
-        overflow: 'hidden'
-      }}>
+      <Paper
+        sx={{
+          mt: 2,
+          boxShadow: 3,
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
         <TableContainer>
           <Table>
             <StyledTableHead>
@@ -800,13 +814,15 @@ const ExpandableTable = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        <Box sx={{
-          borderTop: '1px solid rgba(224, 224, 224, 1)',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          width: '100%'
-        }}>
+        <Box
+          sx={{
+            borderTop: "1px solid rgba(224, 224, 224, 1)",
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
           <TablePagination
             component="div"
             rowsPerPageOptions={[5, 10, 25]}
@@ -820,35 +836,36 @@ const ExpandableTable = () => {
               `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
             }
             sx={{
-              '.MuiTablePagination-toolbar': {
-                minHeight: '52px',
-                alignItems: 'center',
+              ".MuiTablePagination-toolbar": {
+                minHeight: "52px",
+                alignItems: "center",
                 pr: 2,
-                pl: 2
+                pl: 2,
               },
-              '.MuiTablePagination-selectLabel': {
-                m: 0
+              ".MuiTablePagination-selectLabel": {
+                m: 0,
               },
-              '.MuiTablePagination-displayedRows': {
-                m: 0
+              ".MuiTablePagination-displayedRows": {
+                m: 0,
               },
-              '.MuiTablePagination-select': {
-                mr: 2
+              ".MuiTablePagination-select": {
+                mr: 2,
               },
-              '.MuiTablePagination-actions': {
+              ".MuiTablePagination-actions": {
                 ml: 2,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              },
             }}
           />
         </Box>
         <UpdateMaintenanceModal
           open={updateModalOpen}
-          onClose={() => setUpdateModalOpen(false)}
+          onClose={handleCloseUpdateModal}
           maintenance={selectedMaintenance}
           onUpdate={fetchMaintenances}
+          showAlert={showAlert}
         />
         <Snackbar
           open={alertOpen}
@@ -872,4 +889,3 @@ const ExpandableTable = () => {
 };
 
 export default ExpandableTable;
-

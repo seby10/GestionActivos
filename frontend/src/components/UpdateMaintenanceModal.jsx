@@ -19,9 +19,16 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
+import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon } from "@mui/icons-material";
 import { mantenimientosServices } from "../services/mantenimientosServices";
 
-const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate }) => {
+const UpdateMaintenanceModal = ({
+  open,
+  onClose,
+  maintenance,
+  onUpdate,
+  showAlert,
+}) => {
   const [updatedMaintenance, setUpdatedMaintenance] = useState(maintenance);
   const [assets, setAssets] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
@@ -65,6 +72,7 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate }) => {
       } catch (error) {
         console.error("Error fetching assets:", error);
         setErrorMessage("Error fetching assets");
+        showAlert("Error en la actualización", "error");
       }
     }
   }, [maintenance]);
@@ -106,35 +114,10 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate }) => {
       } catch (error) {
         console.error("Error fetching assets:", error);
         setErrorMessage("Error fetching assets");
+        showAlert("Error en la actualización.", "success");
       }
     }
   }, [maintenance]);
-
-  const handleRemoveToggle = (asset) => {
-    const validId = asset.ID_ACT || asset.ID_ACT_MANT;
-    if (!validId) {
-      console.error("Error: Asset does not have a valid ID_ACT or ID_ACT_MANT");
-      setErrorMessage(
-        `El activo no tiene un ID_ACT o ID_ACT_MANT válido: ${validId}`
-      );
-      return;
-    }
-
-    setAssets((prevAssets) =>
-      prevAssets.map((a) =>
-        a.ID_ACT === validId || a.ID_ACT_MANT === validId
-          ? { ...a, toRemove: !a.toRemove }
-          : a
-      )
-    );
-
-    setAssetsToRemove(
-      (prev) =>
-        asset.toRemove
-          ? prev.filter((id) => id !== validId) // Eliminar del arreglo si ya estaba seleccionado
-          : [...prev, validId] // Agregar al arreglo si no estaba seleccionado
-    );
-  };
 
   const handleUpdate = async () => {
     if (assetsToAdd.length > 0) {
@@ -165,13 +148,22 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate }) => {
             [assetId] // Pasar como array de un solo elemento si el servicio lo requiere
           );
           await mantenimientosServices.changeStatusAssetsD([assetId]); // Cambiar el estado de este activo
+          showAlert(`Cambios Guardados`, "success");
           console.log(`Activo ${assetId} eliminado del mantenimiento`);
         } else {
+          const asset = assets.find(
+            (a) => a.ID_ACT === assetId || a.ID_ACT_MANT === assetId
+          );
+          const assetCode = asset ? asset.COD_ACT : assetId; // Si no se encuentra el activo, usar el ID por defecto
           console.log(
-            `No se pudo eliminar el activo ${assetId} del mantenimiento`
+            `No se pudo eliminar el activo ${assetCode} del mantenimiento`
           );
           setErrorMessage(
-            `No se pudo eliminar el activo ${assetId} porque tiene actividades o componentes asociados.`
+            `No se pudo eliminar el activo ${assetCode} porque tiene actividades o componentes asociados.`
+          );
+          showAlert(
+            `No se pudo eliminar el activo ${assetCode} porque tiene actividades o componentes asociados.`,
+            "error"
           );
         }
       }
@@ -196,7 +188,13 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate }) => {
   const handleAssetToggle = (asset) => {
     setAssets((prevAssets) =>
       prevAssets.map((a) =>
-        a.ID_ACT === asset.ID_ACT ? { ...a, isAssociated: !a.isAssociated } : a
+        a.ID_ACT === asset.ID_ACT
+          ? {
+              ...a,
+              isAssociated: !a.isAssociated,
+              toRemove: false, // Desmarcar eliminar si se selecciona asociado
+            }
+          : a
       )
     );
 
@@ -207,49 +205,75 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate }) => {
     }
   };
 
+  const handleRemoveToggle = (asset) => {
+    const validId = asset.ID_ACT || asset.ID_ACT_MANT;
+    if (!validId) {
+      console.error("Error: Asset does not have a valid ID_ACT or ID_ACT_MANT");
+      setErrorMessage(
+        `El activo no tiene un ID_ACT o ID_ACT_MANT válido: ${validId}`
+      );
+      return;
+    }
+
+    setAssets((prevAssets) =>
+      prevAssets.map((a) =>
+        a.ID_ACT === validId || a.ID_ACT_MANT === validId
+          ? {
+              ...a,
+              toRemove: !a.toRemove,
+              isAssociated: false,
+            }
+          : a
+      )
+    );
+
+    setAssetsToRemove((prev) =>
+      asset.toRemove ? prev.filter((id) => id !== validId) : [...prev, validId]
+    );
+  };
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         Actualizar Mantenimiento - {maintenance?.COD_MANT}
       </DialogTitle>
       <DialogContent>
-        <TextField
-          label="Descripción"
-          fullWidth
-          margin="normal"
-          value={updatedMaintenance?.DESC_MANT || ""}
-          onChange={(e) =>
-            setUpdatedMaintenance({
-              ...updatedMaintenance,
-              DESC_MANT: e.target.value,
-            })
-          }
-        />
-
-        {errorMessage && (
-          <Alert
-            severity="error"
-            sx={{ mt: 2, mb: 2 }}
-            onClose={() => setErrorMessage("")}
-          >
-            {errorMessage}
-          </Alert>
-        )}
         <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
           Activos
         </Typography>
         <TableContainer component={Paper}>
           <Table>
-            <TableHead>
+            <TableHead sx={{ backgroundColor: "#1976d2", color: "white" }}>
               <TableRow>
-                <TableCell padding="checkbox">Asociado</TableCell>
-                <TableCell padding="checkbox">Eliminar</TableCell>
-                <TableCell>Código</TableCell>
-                <TableCell>Nombre</TableCell>
-                <TableCell>Marca</TableCell>
-                <TableCell>Categoría</TableCell>
-                <TableCell>Ubicación</TableCell>
-                <TableCell>Estado</TableCell>
+                <TableCell
+                  padding="checkbox"
+                  sx={{ color: "white", textAlign: "center" }}
+                >
+                  <CheckCircleIcon />
+                </TableCell>
+                <TableCell
+                  padding="checkbox"
+                  sx={{ color: "white", textAlign: "center" }}
+                >
+                  <CancelIcon />
+                </TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  Código
+                </TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  Nombre
+                </TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  Marca
+                </TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  Categoría
+                </TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  Ubicación
+                </TableCell>
+                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
+                  Estado
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
