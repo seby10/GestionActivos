@@ -17,7 +17,7 @@ const router = express.Router();
 router.get("/actividadesFrec", getActividadesFrecuentesController);
 router.get("/componentesUsados", getComponentesUsadosController);
 router.get("/registroMantenimientos", getRegistroMantenimientosController);
-router.get("/mantenimientosPorPeriodo", getMantenimientosPorPeriodoController);
+router.get("/mantenimientosG", getMantenimientosPorPeriodoController);
 router.get("/estadisticasMantenimiento", getEstadisticasMantenimientoController);
 router.get("/activosMasMantenidos", getActivosMasMantenidosController);
 router.get("/distribucionEstados", getDistribucionEstadosController);

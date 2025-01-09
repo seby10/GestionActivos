@@ -75,6 +75,8 @@ export const getMantenimientosPorPeriodo = async (
   agrupacion = "day"
 ) => {
   try {
+    const fechaInicioCompleta = `${fechaInicio} 00:00:00`;
+    const fechaFinCompleta = `${fechaFin} 23:59:59`;
     const groupFormat = {
       day: {
         sql: "%Y-%m-%d",
@@ -115,11 +117,11 @@ export const getMantenimientosPorPeriodo = async (
       ORDER BY periodo;
       `,
       [
-        fechaInicio,
+        fechaInicioCompleta,
         agrupacion,
         agrupacion,
         agrupacion,
-        fechaFin,
+        fechaFinCompleta,
         groupFormat[agrupacion].sql,
         groupFormat[agrupacion].display,
         groupFormat[agrupacion].sql,
