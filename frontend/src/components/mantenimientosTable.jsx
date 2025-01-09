@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -77,9 +77,10 @@ const MaintenanceRow = ({
   const [canFinish, setCanFinish] = useState(false);
   const [finishLoading, setFinishLoading] = useState(false);
   const [activoSeleccionado, setActivoSeleccionado] = useState(null);
+  const rowRef = useRef(null);
 
   const openActivityModal = (asset) => {
-    console.log("Activo seleccionado:", asset); // Verifica el contenido
+    console.log("Activo seleccionado:", asset);
     setActivoSeleccionado(asset);
   };
 
@@ -92,15 +93,23 @@ const MaintenanceRow = ({
     if (!open) {
       setLoadingAssets(true);
       try {
-        const fetchedAssets =
-          await mantenimientosServices.getMaintenanceDetails(
-            maintenance.ID_MANT
-          );
+        const fetchedAssets = await mantenimientosServices.getMaintenanceDetails(
+          maintenance.ID_MANT
+        );
         setAssets(fetchedAssets);
         const allInMaintenance = fetchedAssets.every(
           (asset) => asset.EST_DET_MANT === "Finalizado"
         );
         setCanFinish(allInMaintenance);
+
+        setTimeout(() => {
+          if (rowRef.current) {
+            rowRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+          }
+        }, 100);
       } catch (error) {
         console.error("Error loading maintenance details:", error);
       } finally {
@@ -257,7 +266,7 @@ const MaintenanceRow = ({
           </Button>
         </StyledTableCell>
       </TableRow>
-      <TableRow>
+      <TableRow ref={rowRef}>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
@@ -305,7 +314,6 @@ const MaintenanceRow = ({
           </Collapse>
         </TableCell>
       </TableRow>
-      {/* Modal */}
       {activoSeleccionado && (
         <ActivoModal
           activoId={activoSeleccionado.ID_DET_MANT}
@@ -348,7 +356,7 @@ const ExpandableTable = () => {
   //const [filterType, setFilterType] = useState('');
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activosModalOpen, setActivosModalOpen] = useState(false);
   const [sortOrder, setSortOrder] = useState("asc");
   const [dateError, setDateError] = useState("");
@@ -449,7 +457,7 @@ const ExpandableTable = () => {
       const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || "")
         .toLowerCase()
         .includes(filterTechnician.toLowerCase());
-        
+
       const matchStatus =
         !filterStatus ||
         maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
