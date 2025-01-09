@@ -16,8 +16,9 @@ import {
   CircularProgress,
   Typography,
   Box,
-  Grid2
+
 } from "@mui/material";
+import EstadisticasFecha from "./EstadisticasFecha";
 
 const Estadisticas = () => {
   const [actividadesFrecuentes, setActividadesFrecuentes] = useState([]);
@@ -83,116 +84,125 @@ const Estadisticas = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Grid container spacing={3}>
-        {/* Actividades más Frecuentes */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={3}>
-            <CardHeader
-              title="Actividades más Frecuentes"
-              subheader="Top 5 de actividades de mantenimiento realizadas"
-              sx={{ backgroundColor: '#f5f5f5' }}
-            />
-            <CardContent>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell><Typography variant="subtitle2">Actividad</Typography></TableCell>
-                      <TableCell align="right"><Typography variant="subtitle2">Frecuencia</Typography></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {actividadesFrecuentes.map((actividad) => (
-                      <TableRow key={actividad.descripcion}>
-                        <TableCell>{actividad.descripcion}</TableCell>
-                        <TableCell align="right">{actividad.frecuencia}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
+      <EstadisticasFecha />
+      <Card elevation={3} sx={{ mb: .5 }}>
+        <CardHeader
+          title="Estadísticas Historicas del Sistema"
+          sx={{ backgroundColor: '#f5f5f5' }}
+        />
+        <CardContent>
+          <Grid container spacing={3}>
+            {/* Actividades más Frecuentes */}
+            <Grid item xs={12} md={6}>
+              <Card elevation={3}>
+                <CardHeader
+                  title="Actividades más Frecuentes"
+                  subheader="Top 3 de actividades de mantenimiento realizadas"
+                  sx={{ backgroundColor: '#f5f5f5' }}
+                />
+                <CardContent>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><Typography variant="subtitle2">Actividad</Typography></TableCell>
+                          <TableCell align="left"><Typography variant="subtitle2">Frecuencia</Typography></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {actividadesFrecuentes.map((actividad) => (
+                          <TableRow key={actividad.descripcion}>
+                            <TableCell><Typography variant="body1">{actividad.descripcion}</Typography></TableCell>
+                            <TableCell align="left"><Typography variant="body1">{actividad.frecuencia}</Typography></TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            </Grid>
 
-        {/* Componentes más Usados */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={3}>
-            <CardHeader
-              title="Componentes más Usados"
-              subheader="Top 5 de componentes involucrados en mantenimientos"
-              sx={{ backgroundColor: '#f5f5f5' }}
-            />
-            <CardContent>
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell><Typography variant="subtitle2">Componente</Typography></TableCell>
-                      <TableCell align="right"><Typography variant="subtitle2">Cantidad de Usos</Typography></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {componentesUsados.map((componente) => (
-                      <TableRow key={componente.descripcion}>
-                        <TableCell>{componente.descripcion}</TableCell>
-                        <TableCell align="right">{componente.cantidad}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
+            {/* Componentes más Usados */}
+            <Grid item xs={12} md={6}>
+              <Card elevation={3}>
+                <CardHeader
+                  title="Componentes más Usados"
+                  subheader="Top 3 de componentes usados en mantenimientos"
+                  sx={{ backgroundColor: '#f5f5f5' }}
+                />
+                <CardContent>
+                  <TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><Typography variant="subtitle2">Componente</Typography></TableCell>
+                          <TableCell align="left"><Typography variant="subtitle2">Cantidad de Usos</Typography></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {componentesUsados.map((componente) => (
+                          <TableRow key={componente.descripcion}>
+                            <TableCell><Typography variant="body1">{componente.descripcion}</Typography></TableCell>
+                            <TableCell align="left"><Typography variant="body1">{componente.cantidad}</Typography></TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            </Grid>
 
-        {/* Registros de Mantenimiento Recientes */}
-        <Grid item xs={12}>
-          <Card elevation={3}>
-            <CardHeader
-              title="Registros de Mantenimiento Recientes"
-              subheader="Vista detallada de las actividades de mantenimiento"
-              sx={{ backgroundColor: '#f5f5f5' }}
-            />
-            <CardContent>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell><Typography variant="subtitle2">Codigo</Typography></TableCell>
-                      <TableCell><Typography variant="subtitle2">Fecha Inicio</Typography></TableCell>
-                      <TableCell><Typography variant="subtitle2">Fecha Fin</Typography></TableCell>
-                      <TableCell><Typography variant="subtitle2">Descripción</Typography></TableCell>
-                      <TableCell><Typography variant="subtitle2">Activos</Typography></TableCell>
-                      <TableCell><Typography variant="subtitle2">Actividades</Typography></TableCell>
-                      <TableCell><Typography variant="subtitle2">Componentes</Typography></TableCell>
-                      <TableCell><Typography variant="subtitle2">Estado</Typography></TableCell>
-                      <TableCell><Typography variant="subtitle2">Encargado</Typography></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {registrosMantenimiento.map((registro) => (
-                      <TableRow key={registro.COD_MANT}>
-                        <TableCell>{registro.COD_MANT}</TableCell>
-                        <TableCell>{formatDate(registro.FEC_INI_MANT)}</TableCell>
-                        <TableCell>{formatDate(registro.FEC_FIN_MANT)}</TableCell>
-                        <TableCell>{registro.DESC_MANT}</TableCell>
-                        <TableCell>{registro.NOM_ACT}</TableCell>
-                        <TableCell>{registro.actividades}</TableCell>
-                        <TableCell>{registro.componentes}</TableCell>
-                        <TableCell>{registro.ESTADO_MANT}</TableCell>
-                        <TableCell>{registro.ID_TEC_INT === null
-                          ? registro.NOM_PRO
-                          : registro.NOM_USU}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+            {/* Registros de Mantenimiento Recientes */}
+            <Grid item xs={12}>
+              <Card elevation={3}>
+                <CardHeader
+                  title="Registros de Mantenimiento Recientes"
+                  subheader="Vista detallada de las actividades de mantenimiento"
+                  sx={{ backgroundColor: '#f5f5f5' }}
+                />
+                <CardContent>
+                  <TableContainer component={Paper}>
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableCell><Typography variant="subtitle2">Codigo</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Fecha Inicio</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Fecha Fin</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Descripción</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Activos</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Actividades</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Componentes</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Estado</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2s">Encargado</Typography></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {registrosMantenimiento.map((registro) => (
+                          <TableRow key={registro.ID_DET_MANT}>
+                            <TableCell>{registro.COD_MANT}</TableCell>
+                            <TableCell>{formatDate(registro.FEC_INI_MANT)}</TableCell>
+                            <TableCell>{formatDate(registro.FEC_FIN_MANT) || '-'}</TableCell>
+                            <TableCell>{registro.DESC_MANT}</TableCell>
+                            <TableCell>{registro.NOM_ACT}</TableCell>
+                            <TableCell>{registro.actividades || '-'}</TableCell>
+                            <TableCell>{registro.componentes || '-'}</TableCell>
+                            <TableCell>{registro.EST_DET_MANT}</TableCell>
+                            <TableCell>{registro.NOM_USU === null
+                              ? registro.NOM_PRO
+                              : registro.NOM_USU}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
     </Container>
   );
 };

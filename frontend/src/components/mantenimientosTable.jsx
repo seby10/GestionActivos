@@ -722,6 +722,7 @@ const ExpandableTable = () => {
           value={filterStartDate}
           onChange={handleStartDateChange}
           InputLabelProps={{ shrink: true }}
+          inputProps={{ max: filterEndDate }}
           sx={{ minWidth: "200px" }}
           error={!!dateError}
           helperText={dateError}
@@ -733,6 +734,7 @@ const ExpandableTable = () => {
           value={filterEndDate}
           onChange={handleEndDateChange}
           InputLabelProps={{ shrink: true }}
+          inputProps={{ min: filterStartDate }}
           sx={{ minWidth: "200px" }}
           error={!!dateError}
           helperText={dateError}
