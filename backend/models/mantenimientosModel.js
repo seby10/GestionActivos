@@ -69,7 +69,7 @@ export const addDetallesMantenimiento = async (detalle) => {
 export const getActivosByEstado = async () => {
   try {
     const [rows] = await pool.query(
-      "SELECT * FROM ACTIVOS WHERE EST_ACT != 'En Mantenimiento'"
+      "SELECT *, p.NOM_PRO FROM ACTIVOS LEFT JOIN PROVEEDORES p ON ACTIVOS.ID_PRO = p.ID_PRO WHERE EST_ACT != 'En Mantenimiento'"
     );
     return rows;
   } catch (error) {
@@ -91,6 +91,7 @@ export const getMantenimientos = async () => {
         PROVEEDORES p ON m.ID_TEC_EXT = p.ID_PRO 
       LEFT JOIN 
         USUARIOS u ON m.ID_TEC_INT = u.ID_USU
+      ORDER BY FEC_INI_MANT DESC;
     `);
     return rows;
   } catch (error) {
