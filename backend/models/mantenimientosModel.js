@@ -99,7 +99,6 @@ export const getMantenimientos = async () => {
   }
 };
 
-
 export const getDetallesMantenimiento = async (id) => {
   try {
     const [rows] = await pool.query(
@@ -141,24 +140,27 @@ export const updateActivoEstadoD = async (id) => {
   }
 };
 
-
 export const finalizarMantenimientoActivo = async (activoId) => {
   try {
     const queryMantenimiento = `
       UPDATE DETALLES_MANTENIMIENTO
       SET EST_DET_MANT = 'Finalizado'
-      WHERE id_det_mant = ? AND EST_DET_MANT != 'Finalizado'`; 
+      WHERE id_det_mant = ? AND EST_DET_MANT != 'Finalizado'`;
 
-    const [mantenimientoResult] = await pool.query(queryMantenimiento, [activoId]);
+    const [mantenimientoResult] = await pool.query(queryMantenimiento, [
+      activoId,
+    ]);
 
     if (mantenimientoResult.affectedRows === 0) {
       return mantenimientoResult;
     }
 
-
-    return mantenimientoResult; 
+    return mantenimientoResult;
   } catch (error) {
-    console.error("Error al finalizar mantenimiento y actualizar el estado del activo:", error);
+    console.error(
+      "Error al finalizar mantenimiento y actualizar el estado del activo:",
+      error
+    );
     throw error;
   }
 };
@@ -178,8 +180,13 @@ export const canRemoveAssetFromMaintenance = async (maintenanceId, assetId) => {
         WHERE dm.ID_MANT_ASO = ? AND dm.ID_ACT_MANT = ?
       ) AS canRemove;
   `;
-  
-  const [rows] = await pool.query(query, [maintenanceId, assetId, maintenanceId, assetId]);
+
+  const [rows] = await pool.query(query, [
+    maintenanceId,
+    assetId,
+    maintenanceId,
+    assetId,
+  ]);
   return rows[0].canRemove === 1;
 };
 

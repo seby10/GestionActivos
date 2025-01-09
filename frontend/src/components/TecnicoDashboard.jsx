@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import ActivosTable from './Activos/ActivosTable';
 import MantenimientosTable from './mantenimientosTable';
+import Estadisticas from './Estadisticas';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -43,11 +44,24 @@ const Dashboard = () => {
             >
               Activos
             </button>
+            <button
+              className={`selector-button ${activeComponent === 'Estadisticas' ? 'active' : ''}`}
+              onClick={() => handleSelectComponent('Estadisticas')}
+            >
+              Estadísticas
+            </button>
           </div>
         </div>
       </main>
-      {activeComponent === 'Activos' ? <ActivosTable /> : <MantenimientosTable />}
-      <style jsx>{`
+      {activeComponent === 'Activos' ? (
+        <ActivosTable />
+      ) : activeComponent === 'Estadisticas' ? (
+        <Estadisticas />
+      ) : (
+        <MantenimientosTable />
+      )}
+
+      <style jsx="true">{`
         .dashboard-container {
           display: flex;
           flex-direction: column;

@@ -84,7 +84,7 @@ const Header = () => {
         </ul>
       </div>
 
-      <style jsx>{`
+      <style jsx="true">{`
         .header {
           background-color: #457b9d;
           height: 80px;

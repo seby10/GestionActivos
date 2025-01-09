@@ -5,7 +5,8 @@ import createAllTable from './utils/dbUtils.js';
 import authRoutes from './routes/authRoutes.js';
 import activosRoutes from './routes/activosRoutes.js';
 import proveedorRoutes from './routes/proveedorRoutes.js';
-import mantenimientosRoutes from './routes/mantenimientosRoutes.js'; // Importa las rutas de mantenimientos
+import mantenimientosRoutes from './routes/mantenimientosRoutes.js'; 
+import estadisticasRoutes from './routes/estadisticasRoutes.js';
 
 const app = express();
 const PORT = 3000;
@@ -18,7 +19,8 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/activos', activosRoutes);
 app.use('/api/proveedores', proveedorRoutes);
-app.use('/api/mantenimientos', mantenimientosRoutes); // Añade las rutas de mantenimientos
+app.use('/api/mantenimientos', mantenimientosRoutes);
+app.use('/api/estadisticas', estadisticasRoutes);
 
 // Database initialization
 const initializeDatabase = async () => {
