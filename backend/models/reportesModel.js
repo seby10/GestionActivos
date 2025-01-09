@@ -2,7 +2,6 @@ import { pool } from "../config/database.js";
 
 export const getHistorialDB = async (id) => {
   try {
-    // Ejecutar la consulta con el id como parámetro
     const [rows] = await pool.query(
       `
       SELECT 
@@ -30,7 +29,7 @@ LEFT JOIN
 LEFT JOIN 
     componentes CO ON CO.id = AC2.componente_id
 WHERE 
-    A.ID_ACT = ?  -- Reemplazamos con el parámetro id
+    A.ID_ACT = ?
 GROUP BY 
     M.ID_MANT, A.NOM_ACT, DM.EST_DET_MANT  
 ORDER BY 

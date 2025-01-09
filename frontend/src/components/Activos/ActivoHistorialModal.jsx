@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Modal, Box, Typography, Button } from "@mui/material";
-import { saveAs } from "file-saver";
+import {
+  Modal,
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+} from "@mui/material";
+import { FaFilter, FaRedo } from "react-icons/fa";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {
   PDFDownloadLink,
   Document,
@@ -14,47 +24,40 @@ import {
 const ActivoHistorialModal = ({ activoId, activoCod, closeModal }) => {
   const [historial, setHistorial] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [dateRange, setDateRange] = useState({ startDate: "", endDate: "" });
+  const [originalHistorial, setOriginalHistorial] = useState([]);
   useEffect(() => {
     const fetchHistorial = async () => {
       try {
         const response = await axios.get(
           `http://localhost:3000/api/reportes/historial/${activoId}`
         );
-        setHistorial(Array.isArray(response.data) ? response.data : []);
-        setLoading(false);
+        setOriginalHistorial(response.data);
+        setHistorial(response.data);
       } catch (error) {
-        console.error("Error al obtener historial de mantenimiento", error);
-        setHistorial([]);
+        console.error("Error al cargar el historial:", error);
+      } finally {
         setLoading(false);
       }
     };
     fetchHistorial();
   }, [activoId]);
+  const resetFilter = () => setHistorial(originalHistorial);
+  const handleDateFilter = () => {
+    const filteredHistorial = historial.filter((item) => {
+      const itemDate = new Date(item.FEC_INI_MANT);
+      const startDate = dateRange.startDate
+        ? new Date(dateRange.startDate)
+        : null;
+      const endDate = dateRange.endDate ? new Date(dateRange.endDate) : null;
 
-  const downloadCSV = () => {
-    if (!historial || historial.length === 0) return;
-    const headers = [
-      "ID Mantenimiento",
-      "Fecha",
-      "Descripción",
-      "Actividades",
-      "Componentes",
-    ];
-    const rows = historial.map((item) => [
-      item.ID_MANT,
-      new Date(item.FEC_INI_MANT).toLocaleString(),
-      item.DESC_MANT,
-      item.actividades,
-      item.componentes ? item.componentes : "",
-    ]);
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) => row.join(",")),
-    ].join("\n");
+      return (
+        (!startDate || itemDate >= startDate) &&
+        (!endDate || itemDate <= endDate)
+      );
+    });
 
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    saveAs(blob, `historial_mantenimiento_${activoId}.csv`);
+    setHistorial(filteredHistorial);
   };
 
   return (
@@ -66,120 +69,292 @@ const ActivoHistorialModal = ({ activoId, activoCod, closeModal }) => {
     >
       <Box sx={modalStyle}>
         <Typography variant="h6" id="modal-title" gutterBottom>
-          Historial de Mantenimientos de Activo {activoCod}
+          Historial de Activo- {activoCod}
         </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            gap: "8px",
+            marginTop: "10px",
+            marginBottom: "10px",
+            flexDirection: {
+              xs: "column",
+              sm: "row",
+            },
+            justifyContent: "space-between",
+          }}
+        >
+          <TextField
+            type="date"
+            label="Fecha Inicio"
+            value={dateRange.startDate}
+            onChange={(e) =>
+              setDateRange({ ...dateRange, startDate: e.target.value })
+            }
+            InputLabelProps={{ shrink: true }}
+            sx={{
+              "& label": { fontSize: "12px" },
+              "& .MuiInputBase-root": {
+                borderRadius: 2,
+                height: "35px",
+              },
+              "& input": { fontSize: "14px" },
+              flex: 1,
+            }}
+          />
+          <TextField
+            type="date"
+            label="Fecha Fin"
+            value={dateRange.endDate}
+            onChange={(e) =>
+              setDateRange({ ...dateRange, endDate: e.target.value })
+            }
+            InputLabelProps={{ shrink: true }}
+            sx={{
+              "& label": { fontSize: "12px" },
+              "& .MuiInputBase-root": {
+                borderRadius: 2,
+                height: "35px",
+              },
+              "& input": { fontSize: "14px" },
+              flex: 1,
+            }}
+          />
+
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleDateFilter}
+            startIcon={<FaFilter />}
+            sx={{
+              borderRadius: "8px",
+              padding: "6px 14px",
+              fontSize: "12px",
+              minWidth: "120px",
+            }}
+          >
+            Filtrar
+          </Button>
+
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={resetFilter}
+            startIcon={<FaRedo />}
+            sx={{
+              borderRadius: "8px",
+              padding: "6px 14px",
+              fontSize: "12px",
+              minWidth: "120px",
+            }}
+          >
+            Resetear
+          </Button>
+        </Box>
 
         {loading ? (
           <Typography>Cargando...</Typography>
-        ) : historial.length === 0 ? (
-          <Typography>Sin historial de mantenimientos.</Typography>
+        ) : !historial || historial.length === 0 ? (
+          <Typography
+            variant="h6"
+            sx={{ textAlign: "center", marginTop: "20px" }}
+          >
+            Historial Vacío
+          </Typography>
         ) : (
           <Box sx={contentStyle}>
-            {historial.map((item) => {
-              // Convertir las actividades y componentes en listas
-              const actividadesList = item.actividades
-                ? item.actividades.split(",")
-                : [];
-              const componentesList = item.componentes
-                ? item.componentes.split(",")
-                : [];
+            {historial && Array.isArray(historial) && historial.length > 0 ? (
+              historial.map((item) => {
+                // Convertir las actividades y componentes en listas
+                const actividadesList = item.actividades
+                  ? item.actividades.split(",")
+                  : [];
+                const componentesList = item.componentes
+                  ? item.componentes.split(",")
+                  : [];
 
-              return (
-                <Box key={item.ID_MANT} sx={mantenimientoCardStyle}>
-                  <Typography
-                    variant="h6"
-                    sx={{ marginBottom: "10px", fontWeight: "bold" }}
-                  >
-                    Mantenimiento: {item.COD_MANT}
-                  </Typography>
-                  <Typography variant="body1" sx={{ marginBottom: "8px" }}>
-                    <strong>Descripción:</strong> {item.DESC_MANT}
-                  </Typography>
-                  <Typography variant="body1" sx={{ marginBottom: "8px" }}>
-                    <strong>Fecha de Inicio:</strong>{" "}
-                    {new Date(item.FEC_INI_MANT).toLocaleString()}
-                  </Typography>
-
-                  <Typography variant="body1" sx={{ marginBottom: "8px" }}>
-                    <strong>Estado: </strong>
-                    <span
-                      style={{
-                        color:
-                          item.ESTADO_MANT === "Finalizado"
-                            ? "green"
-                            : "orange",
-                        fontWeight: "bold",
+                return (
+                  <Box key={item.ID_MANT} sx={mantenimientoCardStyle}>
+                    {/* Fechas al principio, con fondo resaltado */}
+                    <Box
+                      sx={{
+                        marginBottom: "15px",
+                        display: "flex",
+                        alignItems: "center",
+                        flexWrap: "wrap",
                       }}
                     >
-                      {item.ESTADO_MANT}
-                    </span>
-                  </Typography>
+                      {/* Fecha de Inicio */}
+                      <Box
+                        sx={{
+                          marginRight: "15px",
+                          backgroundColor: "#f1f1f1",
+                          padding: "10px 20px",
+                          borderRadius: "8px",
+                          display: "flex",
+                          alignItems: "center",
+                          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                          flex: "1 1 40%",
+                          marginBottom: { xs: "10px", sm: "0" }, // Responsivo: espacio en pantallas pequeñas
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                          <strong>Inicio:</strong>
+                        </Typography>
+                        <Typography variant="body2" sx={{ marginLeft: "10px" }}>
+                          {new Date(item.FEC_INI_MANT).toLocaleString()}
+                        </Typography>
+                      </Box>
 
-                  {/* Mostrar Fecha de Finalización solo si el estado es 'Finalizado' */}
-                  {item.ESTADO_MANT === "Finalizado" && (
-                    <Typography variant="body1" sx={{ marginBottom: "8px" }}>
-                      <strong>Fecha de Finalización:</strong>{" "}
-                      {new Date(item.FEC_FIN_MANT).toLocaleString()}
-                    </Typography>
-                  )}
-                   <Typography variant="body1" sx={{ marginBottom: "8px" }}>
-                    <strong>Estado del Mantenimiento para este Activo: </strong>
-                    <span
-                      style={{
-                        color:
-                          item.estado_detalle === "Finalizado"
-                            ? "green"
-                            : "orange",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {item.ESTADO_MANT}
-                    </span>
-                  </Typography>
-                  <Typography variant="body1" sx={{ marginBottom: "8px" }}>
-                    <strong>Actividades:</strong>
-                    <ul style={{ marginTop: "5px" }}>
-                      {actividadesList.length > 0 ? (
-                        actividadesList.map((actividad, index) => (
-                          <li key={index}>{actividad.trim()}</li>
-                        ))
-                      ) : (
-                        <li>No hay actividades registradas</li>
+                      {/* Flecha que conecta las fechas (solo si el mantenimiento está finalizado) */}
+                      {item.ESTADO_MANT === "Finalizado" && (
+                        <Box
+                          sx={{
+                            marginLeft: "15px",
+                            marginRight: "15px",
+                            fontSize: "20px",
+                            color: "#888",
+                          }}
+                        >
+                          <strong>→</strong>
+                        </Box>
                       )}
-                    </ul>
-                  </Typography>
 
-                  <Typography variant="body1" sx={{ marginBottom: "8px" }}>
-                    <strong>Componentes:</strong>
-                    <ul style={{ marginTop: "5px" }}>
-                      {componentesList.length > 0 ? (
-                        componentesList.map((componente, index) => (
-                          <li key={index}>{componente.trim()}</li>
-                        ))
-                      ) : (
-                        <li>No hay componentes registrados</li>
-                      )}
-                    </ul>
-                  </Typography>
-                </Box>
-              );
-            })}
+                      {/* Fecha de Finalización */}
+                      <Box
+                        sx={{
+                          backgroundColor:
+                            item.ESTADO_MANT === "Finalizado"
+                              ? "#d4edda"
+                              : "#f7f7f7",
+                          padding: "10px 20px",
+                          borderRadius: "8px",
+                          display: "flex",
+                          alignItems: "center",
+                          boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
+                          flex: "1 1 40%",
+                          marginBottom: { xs: "10px", sm: "0" }, // Responsivo
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                          <strong>Finalización:</strong>
+                        </Typography>
+                        <Typography variant="body2" sx={{ marginLeft: "10px" }}>
+                          {item.ESTADO_MANT === "Finalizado"
+                            ? new Date(item.FEC_FIN_MANT).toLocaleString()
+                            : "--"}
+                        </Typography>
+                      </Box>
+                    </Box>
+
+                    {/* Accordion para los detalles del mantenimiento */}
+                    <Accordion sx={{ marginBottom: "10px", fontSize: "14px" }}>
+                      <AccordionSummary
+                        expandIcon={<ExpandMoreIcon />}
+                        aria-controls={`panel${item.ID_MANT}-content`}
+                        id={`panel${item.ID_MANT}-header`}
+                      >
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: "bold",
+                            fontSize: { xs: "14px", sm: "16px" },
+                          }}
+                        >
+                          Mantenimiento: {item.COD_MANT}
+                          <span
+                            style={{
+                              marginLeft: "10px",
+                              fontSize: "14px",
+                              color:
+                                item.ESTADO_MANT === "Finalizado"
+                                  ? "green"
+                                  : "orange",
+                            }}
+                          >
+                            {item.ESTADO_MANT}
+                          </span>
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ fontSize: "14px" }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ marginBottom: "8px" }}
+                        >
+                          <strong>Descripción:</strong> {item.DESC_MANT}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ marginBottom: "8px" }}
+                        >
+                          <strong>
+                            Estado del Mantenimiento para este Activo:{" "}
+                          </strong>
+                          <span
+                            style={{
+                              color:
+                                item.estado_detalle === "Finalizado"
+                                  ? "green"
+                                  : "orange",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {item.ESTADO_MANT}
+                          </span>
+                        </Typography>
+
+                        {/* Actividades */}
+                        <Typography
+                          variant="body2"
+                          sx={{ marginBottom: "8px" }}
+                        >
+                          <strong>Actividades:</strong>
+                          <ul style={{ marginTop: "5px", marginLeft: "20px" }}>
+                            {actividadesList.length > 0 ? (
+                              actividadesList.map((actividad, index) => (
+                                <li key={index}>{actividad.trim()}</li>
+                              ))
+                            ) : (
+                              <li>No hay actividades registradas</li>
+                            )}
+                          </ul>
+                        </Typography>
+
+                        {/* Componentes */}
+                        <Typography
+                          variant="body2"
+                          sx={{ marginBottom: "8px" }}
+                        >
+                          <strong>Componentes:</strong>
+                          <ul style={{ marginTop: "5px", marginLeft: "20px" }}>
+                            {componentesList.length > 0 ? (
+                              componentesList.map((componente, index) => (
+                                <li key={index}>{componente.trim()}</li>
+                              ))
+                            ) : (
+                              <li>No hay componentes registrados</li>
+                            )}
+                          </ul>
+                        </Typography>
+                      </AccordionDetails>
+                    </Accordion>
+                  </Box>
+                );
+              })
+            ) : (
+              <Typography
+                variant="h6"
+                sx={{ textAlign: "center", marginTop: "20px" }}
+              >
+                Historial Vacío
+              </Typography>
+            )}
           </Box>
         )}
 
         <Box sx={buttonContainer}>
           <Button variant="outlined" color="secondary" onClick={closeModal}>
             Cerrar
-          </Button>
-
-          {/* Descargar CSV */}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={downloadCSV}
-            disabled={historial.length === 0}
-          >
-            Descargar CSV
           </Button>
 
           {/* Descargar PDF */}
@@ -236,8 +411,8 @@ const mantenimientoCardStyle = {
   flexDirection: "column",
   padding: 2,
   margin: 2,
-  width: "100%", 
-  maxWidth: "600px", 
+  width: "100%",
+  maxWidth: "780px",
   backgroundColor: "#f9f9f9",
   borderRadius: "8px",
   boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
@@ -337,49 +512,56 @@ const PDFDocument = ({ data }) => {
         </View>
 
         {/* Secciones de mantenimientos */}
-        {data.map((item) => (
-          <View key={item.ID_MANT} style={stylesPDF.section}>
-            <Text style={stylesPDF.sectionTitle}>
-              ID Mantenimiento: {item.ID_MANT}
-            </Text>
-            <Text style={stylesPDF.content}>
-              <Text>
-                Fecha de Inicio: {new Date(item.FEC_INI_MANT).toLocaleString()}
+        {Array.isArray(data) && data.length > 0 ? (
+          data.map((item) => (
+            <View key={item.ID_MANT} style={stylesPDF.section}>
+              <Text style={stylesPDF.sectionTitle}>
+                ID Mantenimiento: {item.ID_MANT}
               </Text>
-            </Text>
-            <Text style={stylesPDF.content}>
-              <Text>Estado:</Text> {item.ESTADO_MANT}
-            </Text>
-            {item.FEC_FIN_MANT && item.ESTADO_MANT === "Finalizado" && (
               <Text style={stylesPDF.content}>
-                <Text>Fecha de Finalización:</Text>{" "}
-                {new Date(item.FEC_FIN_MANT).toLocaleString()}
+                <Text>
+                  Fecha de Inicio:{" "}
+                  {new Date(item.FEC_INI_MANT).toLocaleString()}
+                </Text>
               </Text>
-            )}
-            <Text style={stylesPDF.content}>
-              <Text>Descripción:</Text> {item.DESC_MANT}
-            </Text>
-            <Text style={stylesPDF.content}>
-              <Text>Actividades:</Text>
-              {item.actividades &&
-                item.actividades
-                  .split(",")
-                  .map((act, index) => (
-                    <Text key={index}>{`\n• ${act.trim()}`}</Text>
-                  ))}
-            </Text>
-            <Text style={stylesPDF.content}>
-              <Text>Componentes:</Text>
-              {item.componentes
-                ? item.componentes
+              <Text style={stylesPDF.content}>
+                <Text>Estado:</Text> {item.ESTADO_MANT}
+              </Text>
+              {item.FEC_FIN_MANT && item.ESTADO_MANT === "Finalizado" && (
+                <Text style={stylesPDF.content}>
+                  <Text>Fecha de Finalización:</Text>{" "}
+                  {new Date(item.FEC_FIN_MANT).toLocaleString()}
+                </Text>
+              )}
+              <Text style={stylesPDF.content}>
+                <Text>Descripción:</Text> {item.DESC_MANT}
+              </Text>
+              <Text style={stylesPDF.content}>
+                <Text>Actividades:</Text>
+                {item.actividades &&
+                  item.actividades
                     .split(",")
-                    .map((comp, index) => (
-                      <Text key={index}>{`\n• ${comp.trim()}`}</Text>
-                    ))
-                : " Ninguno"}
-            </Text>
-          </View>
-        ))}
+                    .map((act, index) => (
+                      <Text key={index}>{`\n• ${act.trim()}`}</Text>
+                    ))}
+              </Text>
+              <Text style={stylesPDF.content}>
+                <Text>Componentes:</Text>
+                {item.componentes
+                  ? item.componentes
+                      .split(",")
+                      .map((comp, index) => (
+                        <Text key={index}>{`\n• ${comp.trim()}`}</Text>
+                      ))
+                  : " Ninguno"}
+              </Text>
+            </View>
+          ))
+        ) : (
+          <Text style={stylesPDF.content}>
+            No hay datos disponibles para mostrar
+          </Text>
+        )}
 
         {/* Pie de página */}
         <View style={stylesPDF.footer}>

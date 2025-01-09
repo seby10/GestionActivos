@@ -34,6 +34,7 @@ import {
 import ClearIcon from "@mui/icons-material/Clear";
 import ActivoModal from "./ActivoModal";
 import { mantenimientosServices } from "../services/mantenimientosServices.js";
+import UpdateMaintenanceModal from "../components/UpdateMaintenanceModal";
 
 const StyledTableHead = styled(TableHead)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
@@ -64,7 +65,12 @@ const formatDate = (dateString) => {
 };
 
 // Componente de fila de mantenimiento
-const MaintenanceRow = ({ maintenance, onUpdate, showAlert }) => {
+const MaintenanceRow = ({
+  maintenance,
+  onUpdate,
+  showAlert,
+  handleOpenUpdateModal,
+}) => {
   const [open, setOpen] = useState(false);
   const [assets, setAssets] = useState([]);
   const [loadingAssets, setLoadingAssets] = useState(false);
@@ -232,9 +238,24 @@ const MaintenanceRow = ({ maintenance, onUpdate, showAlert }) => {
             {getFinishButtonText()}
           </Button>
         </StyledTableCell>
+        <StyledTableCell>
+          <Button
+            variant="contained"
+            onClick={() => handleOpenUpdateModal(maintenance)}
+            disabled={maintenance.ESTADO_MANT !== "En ejecucion"}
+            sx={{
+              backgroundColor: (theme) => theme.palette.primary.main,
+              "&:hover": {
+                backgroundColor: (theme) => theme.palette.primary.dark,
+              },
+            }}
+          >
+            Actualizar
+          </Button>
+        </StyledTableCell>
       </TableRow>
       <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={8}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
               <Typography variant="h6" gutterBottom component="div">
@@ -317,6 +338,8 @@ const ExpandableTable = () => {
   const [filterTechnician, setFilterTechnician] = useState("");
   const [filterDate, setFilterDate] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [selectedMaintenance, setSelectedMaintenance] = useState(null);
 
   //const [filterType, setFilterType] = useState('');
 
@@ -528,6 +551,16 @@ const ExpandableTable = () => {
         ? prev.activos.filter((id) => id !== assetId)
         : [...prev.activos, assetId],
     }));
+  };
+
+  const handleOpenUpdateModal = (maintenance) => {
+    setSelectedMaintenance(maintenance);
+    setUpdateModalOpen(true);
+  };
+
+  const handleCloseUpdateModal = () => {
+    fetchMaintenances();
+    setUpdateModalOpen(false);
   };
 
   return (
@@ -758,12 +791,13 @@ const ExpandableTable = () => {
                 <TableCell>Tipo</TableCell>
                 <TableCell>Estado</TableCell>
                 <TableCell></TableCell>
+                <TableCell></TableCell>
               </TableRow>
             </StyledTableHead>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
                     <CircularProgress />
                   </TableCell>
                 </TableRow>
@@ -774,6 +808,7 @@ const ExpandableTable = () => {
                     maintenance={maintenance}
                     onUpdate={fetchMaintenances}
                     showAlert={showAlert}
+                    handleOpenUpdateModal={handleOpenUpdateModal}
                   />
                 ))
               )}
@@ -826,6 +861,13 @@ const ExpandableTable = () => {
             }}
           />
         </Box>
+        <UpdateMaintenanceModal
+          open={updateModalOpen}
+          onClose={handleCloseUpdateModal}
+          maintenance={selectedMaintenance}
+          onUpdate={fetchMaintenances}
+          showAlert={showAlert}
+        />
         <Snackbar
           open={alertOpen}
           autoHideDuration={6000}

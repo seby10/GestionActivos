@@ -127,27 +127,78 @@ export const updateActivoEstado = async (id) => {
   }
 };
 
+export const updateActivoEstadoD = async (id) => {
+  try {
+    const query = `
+      UPDATE ACTIVOS
+      SET EST_ACT = 'Disponible'
+      WHERE ID_ACT = ?`;
+    const [result] = await pool.query(query, [id]);
+    return result;
+  } catch (error) {
+    console.error("Error updating estado del activo:", error);
+    throw error;
+  }
+};
+
+
 export const finalizarMantenimientoActivo = async (activoId) => {
   try {
-    // Actualizar el estado del mantenimiento en la tabla DETALLES_MANTENIMIENTO
     const queryMantenimiento = `
       UPDATE DETALLES_MANTENIMIENTO
       SET EST_DET_MANT = 'Finalizado'
       WHERE id_det_mant = ? AND EST_DET_MANT != 'Finalizado'`; 
 
-    // Realizamos la consulta para actualizar el estado del mantenimiento
     const [mantenimientoResult] = await pool.query(queryMantenimiento, [activoId]);
 
-    // Si no se actualizó ningún registro, el activo no estaba en mantenimiento o ya estaba finalizado
     if (mantenimientoResult.affectedRows === 0) {
-      return mantenimientoResult; // Si no se actualizó nada, devolvemos el resultado
+      return mantenimientoResult;
     }
 
-    // Puedes agregar más lógica si es necesario, como actualizar el estado del activo o realizar otras actualizaciones
 
-    return mantenimientoResult; // Retornamos el resultado de la consulta
+    return mantenimientoResult; 
   } catch (error) {
     console.error("Error al finalizar mantenimiento y actualizar el estado del activo:", error);
-    throw error; // Lanzamos el error para ser capturado por el controlador
+    throw error;
+  }
+};
+export const canRemoveAssetFromMaintenance = async (maintenanceId, assetId) => {
+  const query = `
+    SELECT 
+      NOT EXISTS(
+        SELECT 1 
+        FROM activo_actividad aa 
+        JOIN DETALLES_MANTENIMIENTO dm ON aa.id_det_mant = dm.ID_DET_MANT 
+        WHERE dm.ID_MANT_ASO = ? AND dm.ID_ACT_MANT = ?
+      ) AND 
+      NOT EXISTS(
+        SELECT 1 
+        FROM activo_componente ac 
+        JOIN DETALLES_MANTENIMIENTO dm ON ac.id_det_mant = dm.ID_DET_MANT 
+        WHERE dm.ID_MANT_ASO = ? AND dm.ID_ACT_MANT = ?
+      ) AS canRemove;
+  `;
+  
+  const [rows] = await pool.query(query, [maintenanceId, assetId, maintenanceId, assetId]);
+  return rows[0].canRemove === 1;
+};
+
+export const removeAssetFromMaintenance = async (maintenanceId, assetId) => {
+  const query = `
+    DELETE FROM DETALLES_MANTENIMIENTO 
+    WHERE ID_MANT_ASO = ? AND ID_ACT_MANT = ?
+  `;
+  await pool.query(query, [maintenanceId, assetId]);
+};
+
+export const getActivosByEstadoD = async () => {
+  try {
+    const [rows] = await pool.query(
+      "SELECT * FROM ACTIVOS WHERE EST_ACT = 'Disponible'"
+    );
+    return rows;
+  } catch (error) {
+    console.error("Error fetching activos:", error);
+    throw error;
   }
 };
