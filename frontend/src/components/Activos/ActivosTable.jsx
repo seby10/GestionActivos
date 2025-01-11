@@ -20,7 +20,7 @@ const ActivosTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
   const [modalActivoId, setModalActivoId] = useState(null);
   const [modalActivoCod, setModalActivoCod] = useState(null);
   const [activoToEdit, setActivoToEdit] = useState(null);
@@ -406,9 +406,16 @@ const ActivosTable = () => {
                   ></button>
                 </div>
                 <div className="modal-body">
-                  <p className="mb-2" style={{ padding: "5px" }}>
-                    Modifique los detalles del activo y guarde cambios.
-                  </p>
+                  {activoToEdit.EST_ACT === "En Mantenimiento" ? (
+                    <p className="text-danger">
+                      El activo está en mantenimiento, no puede ser editado.
+                      Complete el proceso de mantenimiento para continuar.
+                    </p>
+                  ) : (
+                    <p className="mb-2" style={{ padding: "5px" }}>
+                      Modifique los detalles del activo y guarde los cambios.
+                    </p>
+                  )}
                   <div className="mb-3">
                     <label className="form-label">Nombre</label>
                     <input
@@ -418,6 +425,7 @@ const ActivosTable = () => {
                       value={updatedActivo.NOM_ACT || ""}
                       onChange={handleUpdateChange}
                       required
+                      disabled={activoToEdit.EST_ACT === "En Mantenimiento"}
                     />
                   </div>
                   <div className="mb-3">
@@ -428,6 +436,7 @@ const ActivosTable = () => {
                       value={updatedActivo.MAR_ACT || ""}
                       onChange={handleUpdateChange}
                       required
+                      disabled={activoToEdit.EST_ACT === "En Mantenimiento"}
                     >
                       <option value="Apple">Apple</option>
                       <option value="Samsung">Samsung</option>
@@ -460,7 +469,6 @@ const ActivosTable = () => {
                       <option value="Otros">Otros</option>
                     </select>
                   </div>
-
                   <div className="mb-3">
                     <label className="form-label">Categoría</label>
                     <select
@@ -468,6 +476,7 @@ const ActivosTable = () => {
                       className="form-select"
                       value={updatedActivo.CAT_ACT || ""}
                       onChange={handleUpdateChange}
+                      disabled={activoToEdit.EST_ACT === "En Mantenimiento"}
                     >
                       <option value="Informático">Informático</option>
                       <option value="Mueble">Mueble</option>
@@ -502,6 +511,7 @@ const ActivosTable = () => {
                       className="form-select"
                       value={updatedActivo.UBI_ACT || ""}
                       onChange={handleUpdateChange}
+                      disabled={activoToEdit.EST_ACT === "En Mantenimiento"}
                     >
                       <option value="Laboratorio A">Laboratorio A</option>
                       <option value="Laboratorio B">Laboratorio B</option>
@@ -533,26 +543,22 @@ const ActivosTable = () => {
                       className="form-select"
                       value={updatedActivo.EST_ACT || ""}
                       onChange={handleUpdateChange}
+                      disabled={activoToEdit.EST_ACT === "En Mantenimiento"}
                     >
                       <option value="Disponible">Disponible</option>
-                      <option value="En Mantenimiento">Mantenimiento</option>
-                      <option value="Nuevo">Nuevo</option>
+                      <option value="Defectuoso">Defectuoso</option>
+                      <option value="No Disponible">No Disponible</option>
                     </select>
                   </div>
                 </div>
                 <div className="modal-footer">
-                  {/* <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => setActivoToEdit(null)}
-                  >
-                    Cerrar
-                  </button> */}
                   <button
                     type="button"
                     className="btn btn-dark w-100"
                     onClick={handleUpdate}
-                    disabled={!isEdited}
+                    disabled={
+                      activoToEdit.EST_ACT === "En Mantenimiento" || !isEdited
+                    }
                   >
                     Guardar Cambios
                   </button>

@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import ActivosTable from './Activos/ActivosTable';
 import MantenimientosTable from './mantenimientosTable';
-// Importamos los iconos de Material-UI
 import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon } from '@mui/icons-material';
 
 const Dashboard = () => {

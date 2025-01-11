@@ -69,7 +69,7 @@ export const addDetallesMantenimiento = async (detalle) => {
 export const getActivosByEstado = async () => {
   try {
     const [rows] = await pool.query(
-      "SELECT * FROM ACTIVOS WHERE EST_ACT != 'En Mantenimiento'"
+      "SELECT * FROM ACTIVOS WHERE EST_ACT != 'En Mantenimiento' AND EST_ACT != 'No Disponible'"
     );
     return rows;
   } catch (error) {
