@@ -36,7 +36,6 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelected }) => {
-  // Estado para los filtros
   const [filters, setFilters] = useState({
     codigo: '',
     ubicacion: '',
@@ -46,19 +45,15 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
     estado: ''
   });
 
-  // Estado para paginación
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  // Estado para los activos seleccionados localmente
   const [localSelectedAssets, setLocalSelectedAssets] = useState(selectedAssets);
 
-  // Obtener valores únicos para los filtros select
   const getUniqueValues = (field) => {
     return [...new Set(assetsList.map(asset => asset[field]))];
   };
 
-  // Filtrar activos
   const getFilteredAssets = () => {
     return assetsList.filter(asset => {
       return (
@@ -72,19 +67,17 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
     });
   };
 
-  // Obtener activos paginados
   const getPaginatedAssets = () => {
     const filteredAssets = getFilteredAssets();
     return filteredAssets.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   };
 
-  // Manejar cambios en los filtros
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({
       ...prev,
       [field]: value
     }));
-    setPage(0); // Resetear la página cuando se cambian los filtros
+    setPage(0);
   };
 
   // Limpiar todos los filtros
@@ -100,18 +93,15 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
     setPage(0);
   };
 
-  // Manejar cambios de página
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
 
-  // Manejar cambios en filas por página
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
 
-  // Manejar selección de activos
   const handleAssetToggle = (assetId) => {
     setLocalSelectedAssets(prev => {
       if (prev.includes(assetId)) {
@@ -144,17 +134,31 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
             onChange={(e) => handleFilterChange('codigo', e.target.value)}
           />
           <TextField
+            select
             label="Ubicación"
             size="small"
             value={filters.ubicacion}
             onChange={(e) => handleFilterChange('ubicacion', e.target.value)}
-          />
+            sx={{ minWidth: 150 }}
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {getUniqueValues('UBI_ACT').map(ubicacion => (
+              <MenuItem key={ubicacion} value={ubicacion}>{ubicacion}</MenuItem>
+            ))}
+          </TextField>
           <TextField
+            select
             label="Proveedor"
             size="small"
             value={filters.proveedor}
             onChange={(e) => handleFilterChange('proveedor', e.target.value)}
-          />
+            sx={{ minWidth: 150 }}
+          >
+            <MenuItem value="">Todas</MenuItem>
+            {getUniqueValues('NOM_PRO').map(proveedor => (
+              <MenuItem key={proveedor} value={proveedor}>{proveedor}</MenuItem>
+            ))}
+          </TextField>
           <TextField
             select
             label="Marca"

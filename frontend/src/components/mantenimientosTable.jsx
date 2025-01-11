@@ -31,6 +31,7 @@ import {
   KeyboardArrowUp,
 } from "@mui/icons-material";
 import ClearIcon from "@mui/icons-material/Clear";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ActivoModal from "./ActivoModal";
 import { mantenimientosServices } from "../services/mantenimientosServices.js";
 import UpdateMaintenanceModal from "../components/UpdateMaintenanceModal";
@@ -392,6 +393,12 @@ const ExpandableTable = () => {
     setDateError("");
   };
 
+  const resetDateFilters = () => {
+    setFilterStartDate("");
+    setFilterEndDate("");
+    setDateError("");
+  };
+
 
   const getFilteredMaintenances = () => {
     const filtered = maintenances.filter((maintenance) => {
@@ -413,25 +420,24 @@ const ExpandableTable = () => {
       // Filtro por fechas
       let matchDate = true;
 
-      if (filterStartDate || filterEndDate) {
-        const maintenanceDate = new Date(maintenance.FEC_INI_MANT);
-        maintenanceDate.setHours(0, 0, 0, 0); // Normalizar la hora a medianoche
+      if (filterStartDate && filterEndDate) {
+        const maintenanceStartDate = new Date(maintenance.FEC_INI_MANT);
+        const maintenanceEndDate = new Date(maintenance.FEC_INI_MANT);
 
-        if (filterStartDate) {
-          const startDate = new Date(filterStartDate);
-          startDate.setHours(0, 0, 0, 0);
-          if (maintenanceDate < startDate) {
-            matchDate = false;
-          }
-        }
+        const startDate = new Date(filterStartDate);
+        startDate.setHours(0, 0, 0, 0);
 
-        if (filterEndDate && matchDate) {
-          const endDate = new Date(filterEndDate);
-          endDate.setHours(23, 59, 59, 999); // Establecer al final del día
-          if (maintenanceDate > endDate) {
-            matchDate = false;
-          }
+        const endDate = new Date(filterEndDate);
+        endDate.setHours(23, 59, 59, 999);
+
+        if (
+          maintenanceStartDate < startDate ||
+          maintenanceEndDate > endDate
+        ) {
+          matchDate = false;
         }
+      } else if ((filterStartDate && !filterEndDate) || (!filterStartDate && filterEndDate)) {
+        matchDate = false;
       }
 
       return matchCode && matchTechnician && matchDate && matchStatus;
@@ -739,8 +745,13 @@ const ExpandableTable = () => {
           error={!!dateError}
           helperText={dateError}
         />
-
-
+        <IconButton
+          onClick={resetDateFilters}
+          color="primary"
+          sx={{ ml: 1 }}
+        >
+          <RestartAltIcon />
+        </IconButton>
         <Button
           variant="outlined"
           onClick={clearAllFilters}

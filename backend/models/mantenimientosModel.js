@@ -18,16 +18,13 @@ export const addMantenimiento = async (mantenimiento) => {
 
 export const finalizarMantenimiento = async (id) => {
   try {
-    // Comenzar transacción
     await pool.query("START TRANSACTION");
 
-    // Obtener los detalles del mantenimiento
     const [detalles] = await pool.query(
       "SELECT * FROM DETALLES_MANTENIMIENTO WHERE ID_MANT_ASO = ?",
       [id]
     );
 
-    // Actualizar estado de los activos a 'Disponible'
     for (const detalle of detalles) {
       await pool.query(
         "UPDATE ACTIVOS SET EST_ACT = 'Disponible' WHERE ID_ACT = ?",

@@ -17,7 +17,8 @@ import {
     TextField,
     Alert,
     ToggleButton,
-    ToggleButtonGroup
+    ToggleButtonGroup,
+    IconButton,
 } from '@mui/material';
 import {
     LineChart,
@@ -28,6 +29,8 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
+
 
 const EstadisticasFecha = () => {
     const [fechaInicio, setFechaInicio] = useState('');
@@ -83,6 +86,12 @@ const EstadisticasFecha = () => {
         } else {
             setFechaError('');
         }
+    };
+
+    const resetDateFilters = () => {
+        setFechaInicio("");
+        setFechaFin("");
+        setFechaError("");
     };
 
     const fetchData = async () => {
@@ -143,8 +152,15 @@ const EstadisticasFecha = () => {
                 sx={{ backgroundColor: '#f5f5f5' }}
             />
             <CardContent>
-                <Grid container spacing={2} sx={{ mb: 4 }}>
-                    <Grid item xs={12} md={6}>
+                <Grid container spacing={2} sx={{
+                        mb: 4,
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '15px',
+                        borderRadius: '8px'
+                    }}
+                >
+                    <Grid item xs={12} sm={5.5}>
                         <TextField
                             fullWidth
                             type="date"
@@ -154,9 +170,10 @@ const EstadisticasFecha = () => {
                             InputLabelProps={{ shrink: true }}
                             inputProps={{ max: fechaFin }}
                             error={Boolean(fechaError && fechaInicio > fechaFin)}
+                            size="small"
                         />
                     </Grid>
-                    <Grid item xs={12} md={6}>
+                    <Grid item xs={12} sm={5.5}>
                         <TextField
                             fullWidth
                             type="date"
@@ -166,7 +183,22 @@ const EstadisticasFecha = () => {
                             InputLabelProps={{ shrink: true }}
                             inputProps={{ min: fechaInicio }}
                             error={Boolean(fechaError && fechaFin < fechaInicio)}
+                            size="small"
                         />
+                    </Grid>
+                    <Grid item xs={12} sm={1}>
+                        <IconButton
+                            onClick={resetDateFilters}
+                            color="primary"
+                            sx={{
+                                backgroundColor: '#e3f2fd',
+                                '&:hover': {
+                                    backgroundColor: '#bbdefb'
+                                }
+                            }}
+                        >
+                            <RestartAltIcon />
+                        </IconButton>
                     </Grid>
                 </Grid>
 
