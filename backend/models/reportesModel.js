@@ -4,16 +4,23 @@ export const getHistorialDB = async (id) => {
   try {
     const [rows] = await pool.query(
       `
-      SELECT 
+    SELECT 
     M.COD_MANT, 
     M.DESC_MANT, 
     M.FEC_INI_MANT, 
     M.FEC_FIN_MANT, 
     M.ESTADO_MANT, 
     A.NOM_ACT AS nombre_activo, 
-    DM.EST_DET_MANT AS estado_detalle,  
+    DM.EST_DET_MANT AS estado_detalle, 
+    DM.OBS_DET_MANT AS observacion_detalle,
     GROUP_CONCAT(DISTINCT AC.descripcion ORDER BY AC.descripcion ASC) AS actividades,
-    GROUP_CONCAT(DISTINCT CO.descripcion ORDER BY CO.descripcion ASC) AS componentes
+    GROUP_CONCAT(DISTINCT CO.descripcion ORDER BY CO.descripcion ASC) AS componentes,
+    -- Aquí traemos el nombre del técnico, dependiendo de cual no sea NULL
+    CASE
+        WHEN M.ID_TEC_INT IS NOT NULL THEN (SELECT U.NOM_USU FROM USUARIOS U WHERE U.ID_USU = M.ID_TEC_INT)
+        WHEN M.ID_TEC_EXT IS NOT NULL THEN (SELECT P.NOM_PRO FROM PROVEEDORES P WHERE P.ID_PRO = M.ID_TEC_EXT)
+        ELSE 'Técnico no asignado'  -- En caso de que ambos sean NULL
+    END AS nombre_tecnico
 FROM 
     MANTENIMIENTOS M
 JOIN 

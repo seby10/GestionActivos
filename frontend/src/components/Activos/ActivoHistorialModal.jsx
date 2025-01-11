@@ -287,6 +287,12 @@ const ActivoHistorialModal = ({ activoId, activoCod, closeModal }) => {
                           variant="body2"
                           sx={{ marginBottom: "8px" }}
                         >
+                          <strong>Técnico:</strong> {item.nombre_tecnico}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{ marginBottom: "8px" }}
+                        >
                           <strong>
                             Estado del Mantenimiento para este Activo:{" "}
                           </strong>
@@ -335,6 +341,19 @@ const ActivoHistorialModal = ({ activoId, activoCod, closeModal }) => {
                               <li>No hay componentes registrados</li>
                             )}
                           </ul>
+                        </Typography>
+
+                        <Typography
+                          variant="body2"
+                          sx={{ marginBottom: "8px" }}
+                        >
+                          <strong>Observaciones:</strong>
+                          <div>
+                            {item.observacion_detalle &&
+                            item.observacion_detalle.trim() !== ""
+                              ? item.observacion_detalle
+                              : "Sin Observaciones"}
+                          </div>
                         </Typography>
                       </AccordionDetails>
                     </Accordion>

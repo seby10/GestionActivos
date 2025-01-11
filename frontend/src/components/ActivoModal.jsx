@@ -11,6 +11,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  TextField,
 } from "@mui/material";
 
 const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
@@ -23,6 +24,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
   const [optionToRemove, setOptionToRemove] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [currentSelect, setCurrentSelect] = useState(null);
+  const [observacionMantenimiento, setObservacionMantenimiento] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,6 +61,8 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
         );
 
         setEstadoMantenimiento(data.estadoMantenimiento);
+
+        setObservacionMantenimiento(data.observacionMantenimiento);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -66,7 +70,9 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
 
     fetchData();
   }, [activoId]);
-
+  const handleObservationChange = (event) => {
+    setObservacionMantenimiento(event.target.value);
+  };
   const handleChange = (selectedOptions, { action, removedValue, name }) => {
     if (estadoMantenimiento === "Finalizado") {
       return; // No permitir cambios si el estado es Finalizado
@@ -115,6 +121,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
     await axios.post(`http://localhost:3000/api/activos/update/${activoId}`, {
       actividadesSeleccionadas,
       componentesSeleccionados,
+      observacionMantenimiento,
     });
     closeModal();
     showAlert("Cambios guardados", "success");
@@ -138,6 +145,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
       await axios.post(`http://localhost:3000/api/activos/update/${activoId}`, {
         actividadesSeleccionadas,
         componentesSeleccionados,
+        observacionMantenimiento,
       });
 
       await axios.put(
@@ -190,7 +198,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
             onChange={handleChange}
             menuPortalTarget={document.body}
             menuPosition="fixed"
-            isDisabled={estadoMantenimiento === "Finalizado"} 
+            isDisabled={estadoMantenimiento === "Finalizado"}
             styles={{
               container: (provided) => ({
                 ...provided,
@@ -214,7 +222,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
               }),
               clearIndicator: (provided) => ({
                 ...provided,
-                display: "none", 
+                display: "none",
               }),
             }}
           />
@@ -232,7 +240,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
             onChange={handleChange}
             menuPortalTarget={document.body}
             menuPosition="fixed"
-            isDisabled={estadoMantenimiento === "Finalizado"} 
+            isDisabled={estadoMantenimiento === "Finalizado"}
             styles={{
               container: (provided) => ({
                 ...provided,
@@ -256,7 +264,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
               }),
               clearIndicator: (provided) => ({
                 ...provided,
-                display: "none", 
+                display: "none",
               }),
             }}
           />
@@ -267,6 +275,31 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
             {errorMessage}
           </Typography>
         )}
+
+        <Typography variant="h6" gutterBottom>
+          Observaciones
+        </Typography>
+        <TextField
+          label="Escribe tus observaciones"
+          value={observacionMantenimiento}
+          onChange={handleObservationChange}
+          multiline
+          disabled={estadoMantenimiento === "Finalizado"}
+          rows={4}
+          variant="outlined"
+          fullWidth
+          inputProps={{
+            maxLength: 5000,
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "8px",
+            },
+          }}
+        />
+        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+          {observacionMantenimiento?.length ?? 0} / 5000 caracteres
+        </Typography>
 
         <Dialog
           open={openDialog}
@@ -310,7 +343,11 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
             variant="contained"
             color="secondary"
             onClick={handleFinishMaintenance}
-            disabled={estadoMantenimiento === "Finalizado" || (selectedActividades.length === 0 && selectedComponentes.length === 0)}
+            disabled={
+              estadoMantenimiento === "Finalizado" ||
+              (selectedActividades.length === 0 &&
+                selectedComponentes.length === 0)
+            }
             sx={{ ml: 2 }}
           >
             Finalizar Mantenimiento

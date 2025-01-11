@@ -158,10 +158,10 @@ export const getActivo = async (req, res) => {
 
 export const updateActivoRelaciones = async (req, res) => {
   const { id } = req.params;
-  const { actividadesSeleccionadas, componentesSeleccionados } = req.body;
+  const { actividadesSeleccionadas, componentesSeleccionados, observacionMantenimiento } = req.body;
 
   try {
-      await updateActivoRelacionesInDB(id, actividadesSeleccionadas, componentesSeleccionados);
+      await updateActivoRelacionesInDB(id, actividadesSeleccionadas, componentesSeleccionados, observacionMantenimiento);
       res.status(200).send('Relaciones actualizadas correctamente');
   } catch (error) {
       console.error("Error al actualizar relaciones del activo:", error);
