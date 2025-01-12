@@ -437,12 +437,29 @@ const ExpandableTable = () => {
 
   const fetchTechnicians = async (type) => {
     try {
-      if (type === "internal") {
-        const users = await mantenimientosServices.getInternalUsers();
-        setInternalUsers(users);
+      // Primero intentamos obtener los datos del localStorage
+      const cachedData = localStorage.getItem(type === "internal" ? "internalUsers" : "externalProviders");
+  
+      if (cachedData) {
+        // Si los datos están en el localStorage, los usamos
+        const parsedData = JSON.parse(cachedData);
+        if (type === "internal") {
+          setInternalUsers(parsedData);
+        } else {
+          setExternalProviders(parsedData);
+        }
       } else {
-        const providers = await mantenimientosServices.getExternalProviders();
-        setExternalProviders(providers);
+        // Si los datos no están en el localStorage, hacemos la llamada a la API
+        let users = [];
+        if (type === "internal") {
+          users = await mantenimientosServices.getInternalUsers();
+          setInternalUsers(users);
+          localStorage.setItem("internalUsers", JSON.stringify(users)); // Guardamos en el localStorage
+        } else {
+          users = await mantenimientosServices.getExternalProviders();
+          setExternalProviders(users);
+          localStorage.setItem("externalProviders", JSON.stringify(users)); // Guardamos en el localStorage
+        }
       }
     } catch (error) {
       console.error(`Error fetching ${type} technicians:`, error);
