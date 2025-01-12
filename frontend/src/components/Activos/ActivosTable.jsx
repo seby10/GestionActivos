@@ -30,23 +30,45 @@ const ActivosTable = () => {
   const [alertSeverity, setAlertSeverity] = useState("");
   const [showAlert, setShowAlert] = useState(false);
 
-  // Fetch activos y proveedores
+  // Fetch activos y proveedores con caché en localStorage
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [activosRes, proveedoresRes] = await Promise.all([
-          axios.get("http://localhost:3000/api/activos"),
-          axios.get("http://localhost:3000/api/proveedores"),
-        ]);
-        setActivos(activosRes.data);
-        setProveedores(proveedoresRes.data);
-        setLoading(false);
+
+        // Intentamos obtener datos del localStorage
+        const cachedActivos = localStorage.getItem("activos");
+        const cachedProveedores = localStorage.getItem("proveedores");
+
+        if (cachedActivos && cachedProveedores) {
+          setActivos(JSON.parse(cachedActivos));
+          setProveedores(JSON.parse(cachedProveedores));
+          setLoading(false);
+        } else {
+          // Si no están en caché, hacemos la llamada a la API
+          const [activosRes, proveedoresRes] = await Promise.all([
+            axios.get("http://localhost:3000/api/activos"),
+            axios.get("http://localhost:3000/api/proveedores"),
+          ]);
+
+          // Guardamos los datos en localStorage
+          localStorage.setItem("activos", JSON.stringify(activosRes.data));
+          localStorage.setItem(
+            "proveedores",
+            JSON.stringify(proveedoresRes.data)
+          );
+
+          // Establecemos los datos en el estado
+          setActivos(activosRes.data);
+          setProveedores(proveedoresRes.data);
+          setLoading(false);
+        }
       } catch (err) {
         setError("Error al cargar los datos.");
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
@@ -55,6 +77,8 @@ const ActivosTable = () => {
       try {
         const activosRes = await axios.get("http://localhost:3000/api/activos");
         setActivos(activosRes.data);
+        // Actualizamos los datos en localStorage cuando se recarga
+        localStorage.setItem("activos", JSON.stringify(activosRes.data));
       } catch (err) {
         setError("Error al cargar los datos.");
       }
@@ -146,7 +170,7 @@ const ActivosTable = () => {
     }
   };
 
-  const handleUpdate = async () => {
+const handleUpdate = async () => {
     // Verifica si algún campo obligatorio está vacío
     if (!updatedActivo.NOM_ACT?.trim() || !updatedActivo.MAR_ACT?.trim()) {
       setAlertMessage("Todos los campos requeridos deben estar completos.");
@@ -173,6 +197,9 @@ const ActivosTable = () => {
         activo.ID_ACT === activoToEdit.ID_ACT ? { ...updatedActivo } : activo
       );
       setActivos(updatedActivos);
+
+      // Actualizamos los datos en localStorage
+      localStorage.setItem("activos", JSON.stringify(updatedActivos));
 
       setActivoToEdit(null);
       setAlertMessage("Activo actualizado correctamente");
