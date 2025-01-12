@@ -378,8 +378,15 @@ const ActivoHistorialModal = ({ activoId, activoCod, closeModal }) => {
 
           {/* Descargar PDF */}
           <PDFDownloadLink
-            document={<PDFDocument data={historial} />}
-            fileName={`historial_mantenimiento_${activoId}.pdf`}
+            document={
+              <PDFDocument
+                data={{
+                  historial: historial,
+                  codigo_activo: activoCod,
+                }}
+              />
+            }
+            fileName={`historial_mantenimiento_${activoCod}.pdf`}
           >
             {({ loading }) =>
               loading ? (
@@ -474,117 +481,138 @@ const styles = {
 };
 
 const PDFDocument = ({ data }) => {
+  const { historial, codigo_activo } = data; // Destructuramos los datos recibidos
   const currentDate = new Date().toLocaleDateString();
   const stylesPDF = StyleSheet.create({
     page: {
       padding: 30,
-      fontFamily: "Helvetica",
+      fontFamily: "Times-Roman", // Cambiamos a Times-Roman
     },
     header: {
+      backgroundColor: "#457b9d",
+      padding: 10,
       textAlign: "center",
       marginBottom: 20,
     },
-    title: {
-      fontSize: 20,
+    headerText: {
+      color: "white",
+      fontSize: 16, // Más pequeño para profesionalismo
       fontWeight: "bold",
-      marginBottom: 10,
     },
     subtitle: {
-      fontSize: 14,
-      marginBottom: 20,
-    },
-    date: {
-      textAlign: "right",
       fontSize: 12,
-      marginBottom: 20,
+      color: "white",
     },
     section: {
-      marginBottom: 15,
-      padding: 10,
+      marginBottom: 10,
+      padding: 8,
       borderBottom: "1px solid #d3d3d3",
     },
     sectionTitle: {
-      fontSize: 14,
+      fontSize: 12, // Reducido
       fontWeight: "bold",
       marginBottom: 5,
     },
     content: {
-      fontSize: 12,
-      marginBottom: 5,
+      fontSize: 12, // Letra más pequeña
+      marginBottom: 3,
     },
     footer: {
+      backgroundColor: "#457b9d",
       position: "absolute",
-      bottom: 30,
-      width: "100%",
+      bottom: 0,
+      left: 30,
+      right: 30,
+      padding: 8,
       textAlign: "center",
-      fontSize: 10,
+    },
+    footerText: {
+      fontSize: 9,
+      color: "white",
     },
   });
 
   return (
     <Document>
       <Page style={stylesPDF.page}>
-        {/* Título del documento */}
+        {/* Header */}
         <View style={stylesPDF.header}>
-          <Text style={stylesPDF.title}>Informe de Mantenimientos</Text>
+          <Text style={stylesPDF.headerText}>Informe de Mantenimientos</Text>
+          <Text style={stylesPDF.headerText}>Activo: {codigo_activo}</Text>
           <Text style={stylesPDF.subtitle}>Fecha: {currentDate}</Text>
         </View>
 
         {/* Secciones de mantenimientos */}
-        {Array.isArray(data) && data.length > 0 ? (
-          data.map((item) => (
-            <View key={item.ID_MANT} style={stylesPDF.section}>
-              <Text style={stylesPDF.sectionTitle}>
-                ID Mantenimiento: {item.ID_MANT}
-              </Text>
-              <Text style={stylesPDF.content}>
-                <Text>
+        {Array.isArray(historial) && historial.length > 0 ? (
+          // Ordenar el historial por fecha de inicio (más reciente primero)
+          historial
+            .sort((a, b) => new Date(b.FEC_INI_MANT) - new Date(a.FEC_INI_MANT))
+            .map((item, index) => (
+              <View key={item.ID_MANT || index} style={stylesPDF.section}>
+                {/* Título principal del mantenimiento */}
+                <Text style={stylesPDF.sectionTitle}>
+                  Mantenimiento {item.COD_MANT} - {item.ESTADO_MANT}
+                </Text>
+
+                {/* Fecha de inicio y fin */}
+                <Text style={stylesPDF.content}>
                   Fecha de Inicio:{" "}
                   {new Date(item.FEC_INI_MANT).toLocaleString()}
                 </Text>
-              </Text>
-              <Text style={stylesPDF.content}>
-                <Text>Estado:</Text> {item.ESTADO_MANT}
-              </Text>
-              {item.FEC_FIN_MANT && item.ESTADO_MANT === "Finalizado" && (
+                {item.FEC_FIN_MANT && item.ESTADO_MANT === "Finalizado" && (
+                  <Text style={stylesPDF.content}>
+                    Fecha de Finalización:{" "}
+                    {new Date(item.FEC_FIN_MANT).toLocaleString()}
+                  </Text>
+                )}
+
+                {/* Descripción general */}
                 <Text style={stylesPDF.content}>
-                  <Text>Fecha de Finalización:</Text>{" "}
-                  {new Date(item.FEC_FIN_MANT).toLocaleString()}
+                  Descripción: {item.DESC_MANT || "Sin descripción"}
                 </Text>
-              )}
-              <Text style={stylesPDF.content}>
-                <Text>Descripción:</Text> {item.DESC_MANT}
-              </Text>
-              <Text style={stylesPDF.content}>
-                <Text>Actividades:</Text>
-                {item.actividades &&
-                  item.actividades
-                    .split(",")
-                    .map((act, index) => (
-                      <Text key={index}>{`\n• ${act.trim()}`}</Text>
-                    ))}
-              </Text>
-              <Text style={stylesPDF.content}>
-                <Text>Componentes:</Text>
-                {item.componentes
-                  ? item.componentes
-                      .split(",")
-                      .map((comp, index) => (
-                        <Text key={index}>{`\n• ${comp.trim()}`}</Text>
-                      ))
-                  : " Ninguno"}
-              </Text>
-            </View>
-          ))
+
+                {/* Técnico responsable */}
+                <Text style={stylesPDF.content}>
+                  Técnico Responsable:{" "}
+                  {item.nombre_tecnico || "No especificado"}
+                </Text>
+
+                {/* Actividades realizadas */}
+                <Text style={stylesPDF.content}>
+                  Actividades Realizadas:
+                  {item.actividades
+                    ? item.actividades
+                        .split(",")
+                        .map((act, idx) => (
+                          <Text key={idx}>{`\n• ${act.trim()}`}</Text>
+                        ))
+                    : " Ninguna"}
+                </Text>
+
+                {/* Componentes involucrados */}
+                <Text style={stylesPDF.content}>
+                  Componentes Involucrados:
+                  {item.componentes
+                    ? item.componentes
+                        .split(",")
+                        .map((comp, idx) => (
+                          <Text key={idx}>{`\n• ${comp.trim()}`}</Text>
+                        ))
+                    : " Ninguno"}
+                </Text>
+              </View>
+            ))
         ) : (
           <Text style={stylesPDF.content}>
             No hay datos disponibles para mostrar
           </Text>
         )}
 
-        {/* Pie de página */}
+        {/* Footer */}
         <View style={stylesPDF.footer}>
-          <Text>Documento generado automáticamente</Text>
+          <Text style={stylesPDF.footerText}>
+            Reporte automatizado para su revisión.
+          </Text>
         </View>
       </Page>
     </Document>
