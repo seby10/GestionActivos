@@ -115,6 +115,7 @@ const MaintenanceRow = ({
     try {
       await mantenimientosServices.finishMaintenance(maintenance.ID_MANT);
       onUpdate();
+      localStorage.removeItem("activos");
     } catch (error) {
       console.error("Error finishing maintenance:", error);
     } finally {
@@ -545,6 +546,7 @@ const ExpandableTable = () => {
       );
 
       showAlert("Mantenimiento creado exitosamente", "success");
+      localStorage.removeItem("activos");
       await fetchMaintenances();
       handleCloseModal();
     } catch (error) {
