@@ -6,321 +6,270 @@ import {
   DialogActions,
   Button,
   TextField,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Checkbox,
-  Paper,
-  Typography,
   Alert,
-  Tooltip,
-  IconButton,
+  MenuItem,
 } from "@mui/material";
-import {
-  CheckCircle as CheckCircleIcon,
-  Cancel as CancelIcon,
-} from "@mui/icons-material";
 import { mantenimientosServices } from "../services/mantenimientosServices";
+import ActivosModal from './ActivosModal';
 
-const UpdateMaintenanceModal = ({
-  open,
-  onClose,
-  maintenance,
-  onUpdate,
-  showAlert,
-}) => {
+const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAlert }) => {
   const [updatedMaintenance, setUpdatedMaintenance] = useState(maintenance);
+  const [technicalType, setTechnicalType] = useState(maintenance?.ID_TEC_INT ? 'internal' : 'external');
   const [assets, setAssets] = useState([]);
   const [errorMessage, setErrorMessage] = useState("");
-  const [assetsToRemove, setAssetsToRemove] = useState([]);
-  const [assetsToAdd, setAssetsToAdd] = useState([]);
-  const [selectedAssetId, setSelectedAssetId] = useState(null);
+  const [activosModalOpen, setActivosModalOpen] = useState(false);
+  const [availableAssets, setAvailableAssets] = useState([]);
+  const [pendingChanges, setPendingChanges] = useState({
+    addedAssets: [],
+    removedAssets: [],
+  });
+  const [internalUsers, setInternalUsers] = useState([]);
+  const [externalProviders, setExternalProviders] = useState([]);
+  const [initialMaintenanceState, setInitialMaintenanceState] = useState(maintenance);
 
-  const fetchAssetsForAdding = useCallback(async () => {
+  const fetchAvailableAssets = useCallback(async () => {
+    try {
+      const assets = await mantenimientosServices.getAvailableAssets();
+      setAvailableAssets(assets);
+    } catch (error) {
+      console.error("Error fetching available assets:", error);
+      setErrorMessage("Error fetching available assets");
+    }
+  }, []);
+
+  const handleSelectChange = (event) => {
+    const value = event.target.value;
+    setTechnicalType(value);
+    setUpdatedMaintenance({
+      ...updatedMaintenance,
+      ID_TEC_INT: value === 'internal' ? 1 : null,
+      ID_TEC_EXT: value === 'external' ? 1 : null,
+      NOM_USU: '',
+      NOM_PRO: '',
+    });
+    fetchTechnicians(value);
+  };
+
+  const fetchAssetsForMaintenance = useCallback(async () => {
     if (maintenance) {
       try {
-        const associatedAssets =
-          await mantenimientosServices.getMaintenanceDetails(
-            maintenance.ID_MANT
-          );
-        const availableAssets =
-          await mantenimientosServices.getAvailableAssets();
-
-        const combinedAssets = [
-          ...associatedAssets.map((asset) => ({
-            ...asset,
-            isAssociated: true,
-            canRemove: false,
-            toRemove: false,
-            isSelected: false,
-          })),
-          ...availableAssets
-            .filter(
-              (asset) =>
-                !associatedAssets.some((a) => a.ID_ACT === asset.ID_ACT)
-            )
-            .map((asset) => ({
-              ...asset,
-              isAssociated: false,
-              canRemove: true,
-              toRemove: false,
-              isSelected: false,
-            })),
-        ];
-
-        setAssets(combinedAssets);
+        const associatedAssets = await mantenimientosServices.getMaintenanceDetails(maintenance.ID_MANT);
+        setAssets(associatedAssets.map(asset => ({
+          ...asset,
+          isAssociated: true,
+          ID_ACT: asset.ID_ACT_MANT,
+          maintenanceDetails: {
+            ID_MANT_ASO: asset.ID_MANT_ASO,
+            EST_DET_MANT: asset.EST_DET_MANT,
+            created_at: asset.created_at,
+          },
+        })));
       } catch (error) {
         console.error("Error fetching assets:", error);
         setErrorMessage("Error fetching assets");
-        showAlert("Error en la actualización", "error");
+        showAlert("Error en la actualización.", "error");
       }
     }
-  }, [maintenance]);
+  }, [maintenance, showAlert]);
 
-  const fetchAssetsForRemoving = useCallback(async () => {
-    if (maintenance) {
-      try {
-        const associatedAssets =
-          await mantenimientosServices.getMaintenanceDetails(
-            maintenance.ID_MANT
-          );
-        const availableAssets =
-          await mantenimientosServices.getAvailableAssets();
-
-        const combinedAssets = [
-          ...associatedAssets.map((asset) => ({
-            ...asset,
-            isAssociated: true,
-            canRemove: true,
-            toRemove: false,
-            ID_ACT: asset.ID_ACT_MANT,
-            maintenanceDetails: {
-              ID_MANT_ASO: asset.ID_MANT_ASO,
-              EST_DET_MANT: asset.EST_DET_MANT,
-              created_at: asset.created_at,
-            },
-          })),
-          ...availableAssets.map((asset) => ({
-            ...asset,
-            isAssociated: false,
-            canRemove: false,
-            toRemove: false,
-            ID_ACT: asset.ID_ACT,
-            maintenanceDetails: null,
-          })),
-        ];
-
-        setAssets(combinedAssets);
-      } catch (error) {
-        console.error("Error fetching assets:", error);
-        setErrorMessage("Error fetching assets");
-        showAlert("Error en la actualización.", "success");
+  const fetchTechnicians = async (type) => {
+    try {
+      if (type === 'internal') {
+        const users = await mantenimientosServices.getInternalUsers();
+        setInternalUsers(users);
+        setExternalProviders([]);
+      } else {
+        const providers = await mantenimientosServices.getExternalProviders();
+        setExternalProviders(providers);
+        setInternalUsers([]);
       }
+    } catch (error) {
+      console.error(`Error fetching ${type} technicians:`, error);
+      showAlert(`Error fetching ${type} technicians`, 'error');
     }
-  }, [maintenance]);
-  const handleUpdate = async () => {
-    if (assetsToAdd.length > 0) {
-      console.log("Activos añadidos:", assetsToAdd);
-      for (const assetId of assetsToAdd) {
-        await mantenimientosServices.changeStatusAssets(assetId);
-        await mantenimientosServices.addAssetsToMaintenance({
-          id_act: assetId,
-          id_mant_per: maintenance.ID_MANT,
-        });
-        console.log(`Activo ${assetId} añadido al mantenimiento`);
-      }
-    }
-
-    if (assetsToRemove.length > 0) {
-      console.log("Activos eliminados:", assetsToRemove);
-
-      for (const assetId of assetsToRemove) {
-        const canRemove =
-          await mantenimientosServices.canRemoveAssetFromMaintenance(
-            maintenance.ID_MANT,
-            [assetId] // Pasar como array de un solo elemento si el servicio lo requiere
-          );
-
-        if (canRemove) {
-          await mantenimientosServices.removeAssetFromMaintenance(
-            maintenance.ID_MANT,
-            [assetId] // Pasar como array de un solo elemento si el servicio lo requiere
-          );
-          await mantenimientosServices.changeStatusAssetsD([assetId]); // Cambiar el estado de este activo
-          showAlert(`Cambios Guardados`, "success");
-          console.log(`Activo ${assetId} eliminado del mantenimiento`);
-        } else {
-          const asset = assets.find(
-            (a) => a.ID_ACT === assetId || a.ID_ACT_MANT === assetId
-          );
-          const assetCode = asset ? asset.COD_ACT : assetId; // Si no se encuentra el activo, usar el ID por defecto
-          console.log(
-            `No se pudo eliminar el activo ${assetCode} del mantenimiento`
-          );
-          setErrorMessage(
-            `No se pudo eliminar el activo ${assetCode} porque tiene actividades o componentes asociados.`
-          );
-          showAlert(
-            `No se pudo eliminar el activo ${assetCode} porque tiene actividades o componentes asociados.`,
-            "error"
-          );
-        }
-      }
-    }
-
-    setAssetsToAdd([]);
-    setAssetsToRemove([]);
-
-    onClose();
   };
 
   useEffect(() => {
     if (open && maintenance) {
       setUpdatedMaintenance(maintenance);
-      fetchAssetsForRemoving();
-      fetchAssetsForAdding();
-      setAssetsToRemove([]);
-      setAssetsToAdd([]);
+      fetchAssetsForMaintenance();
+      fetchAvailableAssets();
+      setTechnicalType(maintenance.ID_TEC_INT ? 'internal' : 'external');
+      fetchTechnicians(maintenance.ID_TEC_INT ? 'internal' : 'external');
+      setInitialMaintenanceState(maintenance); // Save initial state for comparison
+    }
+  }, [open, maintenance, fetchAssetsForMaintenance, fetchAvailableAssets]);
+
+  useEffect(() => {
+    if (!open) {
+      setUpdatedMaintenance(maintenance);
+      setTechnicalType(maintenance?.ID_TEC_INT ? 'internal' : 'external');
+      setAssets([]);
+      setAvailableAssets([]);
+      setPendingChanges({
+        addedAssets: [],
+        removedAssets: [],
+      });
+      setInternalUsers([]);
+      setExternalProviders([]);
     }
   }, [open, maintenance]);
 
-  const handleAssetToggle = (asset) => {
-    setAssets((prevAssets) =>
-      prevAssets.map((a) =>
-        a.ID_ACT === asset.ID_ACT
-          ? {
-              ...a,
-              isAssociated: !a.isAssociated,
-              toRemove: false, // Desmarcar eliminar si se selecciona asociado
-            }
-          : a
-      )
-    );
+  const handleUpdate = async () => {
+    try {
+      for (const assetId of pendingChanges.removedAssets) {
+        const canRemove = await mantenimientosServices.canRemoveAssetFromMaintenance(maintenance.ID_MANT, assetId);
+        if (!canRemove) {
+          const asset = assets.find(a => a.ID_ACT === assetId);
+          const assetCode = asset ? asset.COD_ACT : assetId;
+          setErrorMessage(`No se pudo eliminar el activo ${assetCode} porque tiene actividades o componentes asociados.`);
+          showAlert(`No se pudo eliminar el activo ${assetCode} porque tiene actividades o componentes asociados.`, "error");
+          return;
+        }
+      }
 
-    if (!asset.isAssociated) {
-      setAssetsToAdd((prev) => [...prev, asset.ID_ACT]);
-    } else {
-      setAssetsToAdd((prev) => prev.filter((id) => id !== asset.ID_ACT));
+      const updatedMaintenanceData = {
+        id: maintenance.ID_MANT,
+        DESC_MANT: updatedMaintenance.DESC_MANT,
+        FEC_INI_MANT: updatedMaintenance.FEC_INI_MANT,
+        ID_TEC_INT: technicalType === 'internal' ? updatedMaintenance.ID_TEC_INT : null,
+        ID_TEC_EXT: technicalType === 'external' ? updatedMaintenance.ID_TEC_EXT : null
+      };
+
+      await mantenimientosServices.updateMaintenance(maintenance.ID_MANT, updatedMaintenanceData);
+
+      for (const assetId of pendingChanges.addedAssets) {
+        await mantenimientosServices.addAssetsToMaintenance({
+          id_act: assetId,
+          id_mant_per: maintenance.ID_MANT,
+        });
+        await mantenimientosServices.changeStatusAssets(assetId);
+      }
+
+      for (const assetId of pendingChanges.removedAssets) {
+        await mantenimientosServices.removeAssetFromMaintenance(maintenance.ID_MANT, assetId);
+        await mantenimientosServices.changeStatusAssetsD(assetId);
+      }
+
+      showAlert("Mantenimiento actualizado exitosamente", "success");
+      onUpdate();
+      onClose();
+    } catch (error) {
+      console.error("Error updating maintenance:", error);
+      setErrorMessage("Error updating maintenance");
+      showAlert("Error en la actualización", "error");
     }
   };
 
-  const handleRemoveToggle = (asset) => {
-    const validId = asset.ID_ACT || asset.ID_ACT_MANT;
-    if (!validId) {
-      console.error("Error: Asset does not have a valid ID_ACT or ID_ACT_MANT");
-      setErrorMessage(
-        `El activo no tiene un ID_ACT o ID_ACT_MANT válido: ${validId}`
-      );
-      return;
+  const handleOpenActivosModal = () => {
+    setActivosModalOpen(true);
+  };
+
+  const handleCloseActivosModal = () => {
+    setActivosModalOpen(false);
+  };
+
+  const handleAssetSelection = (selectedAssets, assetsToDelete) => {
+    setPendingChanges({
+      addedAssets: selectedAssets.filter(id => !assets.some(asset => asset.ID_ACT === id)),
+      removedAssets: assetsToDelete,
+    });
+  };
+
+  const hasChanges = () => {
+    if (!updatedMaintenance || !initialMaintenanceState) {
+      return false;
     }
-
-    setAssets((prevAssets) =>
-      prevAssets.map((a) =>
-        a.ID_ACT === validId || a.ID_ACT_MANT === validId
-          ? {
-              ...a,
-              toRemove: !a.toRemove,
-              isAssociated: false,
-            }
-          : a
-      )
-    );
-
-    setAssetsToRemove((prev) =>
-      asset.toRemove ? prev.filter((id) => id !== validId) : [...prev, validId]
+    return (
+      updatedMaintenance.DESC_MANT !== initialMaintenanceState.DESC_MANT ||
+      updatedMaintenance.FEC_INI_MANT !== initialMaintenanceState.FEC_INI_MANT ||
+      updatedMaintenance.ID_TEC_INT !== initialMaintenanceState.ID_TEC_INT ||
+      updatedMaintenance.ID_TEC_EXT !== initialMaintenanceState.ID_TEC_EXT ||
+      pendingChanges.addedAssets.length > 0 ||
+      pendingChanges.removedAssets.length > 0
     );
   };
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        Actualizar Mantenimiento - {maintenance?.COD_MANT}
-      </DialogTitle>
+      <DialogTitle>Actualizar Mantenimiento - {updatedMaintenance?.COD_MANT}</DialogTitle>
       <DialogContent>
-        <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-          Activos
-        </Typography>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead sx={{ backgroundColor: "#1976d2", color: "white" }}>
-              <TableRow>
-                <TableCell
-                  padding="checkbox"
-                  sx={{ color: "white", textAlign: "center" }}
-                >
-                  <CheckCircleIcon />
-                </TableCell>
-                <TableCell
-                  padding="checkbox"
-                  sx={{ color: "white", textAlign: "center" }}
-                >
-                  <CancelIcon />
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Código
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Nombre
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Marca
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Categoría
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Ubicación
-                </TableCell>
-                <TableCell sx={{ color: "white", fontWeight: "bold" }}>
-                  Estado
-                </TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {assets.map((asset) => {
-                const isSelected = selectedAssetId === asset.ID_ACT;
-                return (
-                  <TableRow key={asset.ID_ACT}>
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={asset.isAssociated}
-                        onChange={() => handleAssetToggle(asset)}
-                        color="primary"
-                        disabled={
-                          asset.isAssociated ||
-                          asset.EST_DET_MANT === "Finalizado"
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Checkbox
-                        checked={asset.toRemove}
-                        onChange={() => handleRemoveToggle(asset)}
-                        color="primary"
-                        disabled={!asset.isAssociated}
-                      />
-                    </TableCell>
-                    <TableCell>{asset.COD_ACT}</TableCell>
-                    <TableCell>{asset.NOM_ACT}</TableCell>
-                    <TableCell>{asset.MAR_ACT}</TableCell>
-                    <TableCell>{asset.CAT_ACT}</TableCell>
-                    <TableCell>{asset.UBI_ACT}</TableCell>
-                    <TableCell>{asset.EST_ACT}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
+        <TextField
+          label="Descripción"
+          fullWidth
+          margin="normal"
+          value={updatedMaintenance?.DESC_MANT || ''}
+          onChange={(e) => setUpdatedMaintenance({ ...updatedMaintenance, DESC_MANT: e.target.value })}
+        />
+        <TextField
+          label="Tipo de Técnico"
+          fullWidth
+          margin="normal"
+          select
+          value={technicalType}
+          onChange={handleSelectChange}
+        >
+          <MenuItem value="internal">Interno</MenuItem>
+          <MenuItem value="external">Externo</MenuItem>
+        </TextField>
+        {technicalType === 'internal' ? (
+          <TextField
+            label="Nombre del Técnico"
+            fullWidth
+            margin="normal"
+            select
+            value={updatedMaintenance?.ID_TEC_INT || ''}
+            onChange={(e) => setUpdatedMaintenance({ ...updatedMaintenance, ID_TEC_INT: e.target.value })}
+          >
+            {internalUsers.map((user) => (
+              <MenuItem key={user.ID_USU} value={user.ID_USU}>
+                {user.NOM_USU}
+              </MenuItem>
+            ))}
+          </TextField>
+        ) : (
+          <TextField
+            label="Proveedor"
+            fullWidth
+            margin="normal"
+            select
+            value={updatedMaintenance?.ID_TEC_EXT || ''}
+            onChange={(e) => setUpdatedMaintenance({ ...updatedMaintenance, ID_TEC_EXT: e.target.value })}
+          >
+            {externalProviders.map((provider) => (
+              <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
+                {provider.NOM_PRO}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
+        <TextField
+          label="Fecha de Inicio"
+          type="datetime-local"
+          fullWidth
+          margin="normal"
+          InputLabelProps={{ shrink: true }}
+          value={updatedMaintenance?.FEC_INI_MANT ? updatedMaintenance.FEC_INI_MANT.slice(0, 16) : ''}
+          onChange={(e) => setUpdatedMaintenance({ ...updatedMaintenance, FEC_INI_MANT: e.target.value })}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={handleUpdate} color="primary">
+        <Button onClick={handleOpenActivosModal} color="primary">
+          Gestionar Activos
+        </Button>
+        <Button onClick={handleUpdate} color="primary" disabled={!hasChanges()}>
           Actualizar
         </Button>
       </DialogActions>
+      <ActivosModal
+        open={activosModalOpen}
+        onClose={handleCloseActivosModal}
+        assetsList={[...assets, ...availableAssets]}
+        selectedAssets={assets.map(asset => asset.ID_ACT)}
+        onAssetsSelected={handleAssetSelection}
+        isGestionar={true}
+      />
     </Dialog>
   );
 };

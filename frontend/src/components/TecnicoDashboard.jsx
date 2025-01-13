@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import ActivosTable from './Activos/ActivosTable';
 import MantenimientosTable from './mantenimientosTable';
+import Estadisticas from './Estadisticas';
 
 // Importamos los iconos de Material-UI
 import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon } from '@mui/icons-material';
@@ -48,11 +49,24 @@ const Dashboard = () => {
               <ActivosIcon className="selector-icon" />
               <span className="button-text">Activos</span>
             </button>
+            <button
+              className={`selector-button ${activeComponent === 'Estadisticas' ? 'active' : ''}`}
+              onClick={() => handleSelectComponent('Estadisticas')}
+            >
+              Estadísticas
+            </button>
           </div>
         </div>
       </main>
-      {activeComponent === 'Activos' ? <ActivosTable /> : <MantenimientosTable />}
-      <style jsx>{`
+      {activeComponent === 'Activos' ? (
+        <ActivosTable />
+      ) : activeComponent === 'Estadisticas' ? (
+        <Estadisticas />
+      ) : (
+        <MantenimientosTable />
+      )}
+
+      <style jsx="true">{`
         .dashboard-container {
           display: flex;
           flex-direction: column;

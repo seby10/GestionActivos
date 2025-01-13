@@ -99,7 +99,7 @@ const Login = () => {
         </form>
       </div>
 
-      <style jsx>{`
+      <style jsx="true">{`
         .login-container {
           display: flex;
           justify-content: center;

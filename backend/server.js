@@ -7,6 +7,8 @@ import activosRoutes from './routes/activosRoutes.js';
 import proveedorRoutes from './routes/proveedorRoutes.js';
 import mantenimientosRoutes from './routes/mantenimientosRoutes.js';
 import reportesRoutes from './routes/reportesRoutes.js';
+import estadisticasRoutes from './routes/estadisticasRoutes.js';
+
 
 const app = express();
 const PORT = 3000;
@@ -21,6 +23,8 @@ app.use('/api/activos', activosRoutes);
 app.use('/api/proveedores', proveedorRoutes);
 app.use('/api/mantenimientos', mantenimientosRoutes); // Añade las rutas de mantenimientos
 app.use('/api/reportes', reportesRoutes);
+app.use('/api/estadisticas', estadisticasRoutes);
+
 // Database initialization
 const initializeDatabase = async () => {
   try {
