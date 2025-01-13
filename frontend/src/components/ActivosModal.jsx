@@ -19,8 +19,11 @@ import {
   Box,
   Typography,
   styled,
+  Tooltip,
+  Alert,
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
+
 
 const StyledTableHead = styled(TableHead)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
@@ -45,6 +48,7 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
     estado: ''
   });
   const [page, setPage] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [localSelectedAssets, setLocalSelectedAssets] = useState(selectedAssets);
   const [assetsToDelete, setAssetsToDelete] = useState([]);
@@ -122,15 +126,44 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
     });
   };
 
+  const handleDeleteCheckboxChange = (event, assetId) => {
+    const checked = event.target.checked;
+    const associatedAssets = assetsList.filter(asset => asset.isAssociated);
+    if (checked) {
+      const updatedAssetsToDelete = [...assetsToDelete, assetId];
+      const remainingAssociatedAssets = associatedAssets.filter(
+        asset => !updatedAssetsToDelete.includes(asset.ID_ACT)
+      );
+      if (remainingAssociatedAssets.length === 0) {
+        setErrorMessage('No puedes eliminar el último activo asociado.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 3000);
+        return; 
+      }
+      setAssetsToDelete(updatedAssetsToDelete);
+    } else {
+      setAssetsToDelete(prev => prev.filter(id => id !== assetId));
+    }
+  };
+  
+
   const handleSave = () => {
+    if (filteredAssets.length === 1 && assetsToDelete.includes(filteredAssets[0].ID_ACT)) {
+      alert('No se puede eliminar el último activo asociado.');
+      return;
+    }
+  
     onAssetsSelected(localSelectedAssets, assetsToDelete);
     onClose();
   };
+  
 
   const filteredAssets = getFilteredAssets();
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+       {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
       <DialogTitle>
         <Typography>Seleccionar Activos</Typography>
       </DialogTitle>
@@ -254,12 +287,19 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                   </TableCell>
                   {isGestionar && (
                     <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={assetsToDelete.includes(asset.ID_ACT)}
-                        onChange={() => handleRemoveToggle(asset.ID_ACT)}
-                        color="primary"
-                        disabled={!asset.isAssociated}
-                      />
+                      <Tooltip
+                        title={!asset.isDeletable ? 'No se puede eliminar: Tiene actividades o componentes disponibles.' : ''}
+                        arrow
+                      >
+                        <span>
+                          <Checkbox
+                            checked={assetsToDelete.includes(asset.ID_ACT)}
+                            onChange={(e) => handleDeleteCheckboxChange(e, asset.ID_ACT)}
+                            color="primary"
+                            disabled={!asset.isDeletable}
+                          />
+                        </span>
+                      </Tooltip>
                     </TableCell>
                   )}
                   <StyledTableCell>{asset.COD_ACT}</StyledTableCell>

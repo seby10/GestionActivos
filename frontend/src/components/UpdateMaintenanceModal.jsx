@@ -49,21 +49,26 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
     });
     fetchTechnicians(value);
   };
-
   const fetchAssetsForMaintenance = useCallback(async () => {
     if (maintenance) {
       try {
         const associatedAssets = await mantenimientosServices.getMaintenanceDetails(maintenance.ID_MANT);
-        setAssets(associatedAssets.map(asset => ({
-          ...asset,
-          isAssociated: true,
-          ID_ACT: asset.ID_ACT_MANT,
-          maintenanceDetails: {
-            ID_MANT_ASO: asset.ID_MANT_ASO,
-            EST_DET_MANT: asset.EST_DET_MANT,
-            created_at: asset.created_at,
-          },
-        })));
+        const updatedAssets = await Promise.all(associatedAssets.map(async (asset) => {
+          const canBeDeleted = await mantenimientosServices.canRemoveAssetFromMaintenance(maintenance.ID_MANT, asset.ID_ACT_MANT);
+          return {
+            ...asset,
+            isAssociated: true,
+            isDeletable: canBeDeleted,
+            ID_ACT: asset.ID_ACT_MANT,
+            maintenanceDetails: {
+              ID_MANT_ASO: asset.ID_MANT_ASO,
+              EST_DET_MANT: asset.EST_DET_MANT,
+              created_at: asset.created_at,
+            },
+          };
+        }));
+  
+        setAssets(updatedAssets);
       } catch (error) {
         console.error("Error fetching assets:", error);
         setErrorMessage("Error fetching assets");
@@ -71,7 +76,8 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
       }
     }
   }, [maintenance, showAlert]);
-
+  
+  
   const fetchTechnicians = async (type) => {
     try {
       if (type === 'internal') {
@@ -117,16 +123,6 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
 
   const handleUpdate = async () => {
     try {
-      for (const assetId of pendingChanges.removedAssets) {
-        const canRemove = await mantenimientosServices.canRemoveAssetFromMaintenance(maintenance.ID_MANT, assetId);
-        if (!canRemove) {
-          const asset = assets.find(a => a.ID_ACT === assetId);
-          const assetCode = asset ? asset.COD_ACT : assetId;
-          setErrorMessage(`No se pudo eliminar el activo ${assetCode} porque tiene actividades o componentes asociados.`);
-          showAlert(`No se pudo eliminar el activo ${assetCode} porque tiene actividades o componentes asociados.`, "error");
-          return;
-        }
-      }
 
       const updatedMaintenanceData = {
         id: maintenance.ID_MANT,
