@@ -39,10 +39,25 @@ const Estadisticas = () => {
   const [registrosMantenimiento, setRegistrosMantenimiento] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortOrder, setSortOrder] = useState("desc");
 
   // Estados para paginación
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+  };
+
+  const getSortedRecords = () => {
+    return [...registrosMantenimiento].sort((a, b) => {
+      if (sortOrder === "asc") {
+        return new Date(a.FEC_INI_MANT) - new Date(b.FEC_INI_MANT);
+      } else {
+        return new Date(b.FEC_INI_MANT) - new Date(a.FEC_INI_MANT);
+      }
+    });
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -77,7 +92,6 @@ const Estadisticas = () => {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
@@ -126,14 +140,14 @@ const Estadisticas = () => {
                 />
                 <CardContent>
                   <Box display="flex" justifyContent="center" alignItems="center">
-                    <PieChart width={400} height={300}>
+                    <PieChart width={400} height={350}>
                       <Pie
                         data={actividadesFrecuentes}
                         dataKey="frecuencia"
                         nameKey="descripcion"
                         cx="50%"
                         cy="50%"
-                        outerRadius={100}
+                        outerRadius={85}
                         label
                       >
                         {actividadesFrecuentes.map((entry, index) => (
@@ -158,7 +172,7 @@ const Estadisticas = () => {
                 />
                 <CardContent>
                   <Box display="flex" justifyContent="center" alignItems="center">
-                    <BarChart width={400} height={300} data={componentesUsados}>
+                    <BarChart width={400} height={350} data={componentesUsados}>
                       <XAxis dataKey="descripcion" />
                       <YAxis />
                       <Tooltip />

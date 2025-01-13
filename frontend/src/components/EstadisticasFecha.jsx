@@ -70,8 +70,8 @@ const EstadisticasFecha = () => {
         const newFechaInicio = e.target.value;
         setFechaInicio(newFechaInicio);
 
-        if (fechaFin && newFechaInicio > fechaFin) {
-            setFechaError('La fecha de inicio no puede ser mayor que la fecha de fin');
+        if ((fechaFin && newFechaInicio > fechaFin) || !newFechaInicio) {
+            setFechaError('Por favor seleccione una fecha de inicio valida');
         } else {
             setFechaError('');
         }
@@ -82,7 +82,7 @@ const EstadisticasFecha = () => {
         setFechaFin(newFechaFin);
 
         if (fechaInicio && newFechaFin < fechaInicio) {
-            setFechaError('La fecha de fin no puede ser menor que la fecha de inicio');
+            setFechaError('Por favor seleccione una fecha de fin valida');
         } else {
             setFechaError('');
         }
