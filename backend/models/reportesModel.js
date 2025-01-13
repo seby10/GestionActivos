@@ -40,9 +40,7 @@ WHERE
 GROUP BY 
     M.ID_MANT, A.NOM_ACT, DM.EST_DET_MANT  
 ORDER BY 
-    M.FEC_INI_MANT DESC 
-LIMIT 0, 25;
-
+    M.FEC_INI_MANT DESC;
     `,
       [id]
     );
