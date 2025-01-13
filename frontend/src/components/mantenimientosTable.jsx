@@ -359,15 +359,15 @@ const ExpandableTable = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activosModalOpen, setActivosModalOpen] = useState(false);
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [sortOrder, setSortOrder] = useState("desc");
   const [dateError, setDateError] = useState("");
 
   const handleStartDateChange = (e) => {
     const startDate = e.target.value;
     if (filterEndDate && new Date(startDate) > new Date(filterEndDate)) {
-      setDateError("Periodo Invalido");
+      setDateError("La fecha de inicio no puede ser mayor que la fecha de fin.");
     } else {
-      setDateError(""); // Limpia el error si todo está bien
+      setDateError("");
     }
     setFilterStartDate(startDate);
   };
@@ -375,13 +375,12 @@ const ExpandableTable = () => {
   const handleEndDateChange = (e) => {
     const endDate = e.target.value;
     if (filterStartDate && new Date(filterStartDate) > new Date(endDate)) {
-      setDateError("Periodo de tiempo invalido");
+      setDateError("La fecha de fin no puede ser menor que la fecha de inicio.");
     } else {
-      setDateError(""); // Limpia el error si todo está bien
+      setDateError("");
     }
     setFilterEndDate(endDate);
   };
-
 
   const clearAllFilters = () => {
     setFilterCode("");
@@ -420,24 +419,30 @@ const ExpandableTable = () => {
       // Filtro por fechas
       let matchDate = true;
 
-      if (filterStartDate && filterEndDate) {
-        const maintenanceStartDate = new Date(maintenance.FEC_INI_MANT);
-        const maintenanceEndDate = new Date(maintenance.FEC_INI_MANT);
+      if (filterStartDate || filterEndDate) {
+        // Asegúrate de convertir las fechas correctamente
+        const maintenanceDate = new Date(maintenance.FEC_INI_MANT);
+        console.log("maintenanceDate", maintenanceDate);
 
-        const startDate = new Date(filterStartDate);
-        startDate.setHours(0, 0, 0, 0);
+        if (filterStartDate) {
+          const [year, month, day] = filterStartDate.split("-").map(Number);
+          const startDate = new Date(year, month - 1, day, 0, 0, 0, 0); // Forzar zona horaria local
+          console.log("startDate", startDate);
 
-        const endDate = new Date(filterEndDate);
-        endDate.setHours(23, 59, 59, 999);
-
-        if (
-          maintenanceStartDate < startDate ||
-          maintenanceEndDate > endDate
-        ) {
-          matchDate = false;
+          if (maintenanceDate < startDate) {
+            matchDate = false;
+          }
         }
-      } else if ((filterStartDate && !filterEndDate) || (!filterStartDate && filterEndDate)) {
-        matchDate = false;
+
+        if (filterEndDate && matchDate) {
+          const [year, month, day] = filterEndDate.split("-").map(Number);
+          const endDate = new Date(year, month - 1, day, 23, 59, 59, 999); // Forzar zona horaria local
+          console.log("endDate", endDate);
+
+          if (maintenanceDate > endDate) {
+            matchDate = false;
+          }
+        }
       }
 
       return matchCode && matchTechnician && matchDate && matchStatus;
@@ -472,19 +477,18 @@ const ExpandableTable = () => {
 
       if (filterStartDate || filterEndDate) {
         const maintenanceDate = new Date(maintenance.FEC_INI_MANT);
-        maintenanceDate.setHours(0, 0, 0, 0);
-
+        
         if (filterStartDate) {
-          const startDate = new Date(filterStartDate);
-          startDate.setHours(0, 0, 0, 0);
+          const [year, month, day] = filterStartDate.split("-").map(Number);
+          const startDate = new Date(year, month - 1, day, 0, 0, 0, 0); // Forzar zona horaria local
           if (maintenanceDate < startDate) {
             matchDate = false;
           }
         }
 
         if (filterEndDate && matchDate) {
-          const endDate = new Date(filterEndDate);
-          endDate.setHours(23, 59, 59, 999);
+          const [year, month, day] = filterEndDate.split("-").map(Number);
+          const endDate = new Date(year, month - 1, day, 23, 59, 59, 999); // Forzar zona horaria local
           if (maintenanceDate > endDate) {
             matchDate = false;
           }
@@ -648,15 +652,6 @@ const ExpandableTable = () => {
         showAlert("Error al crear el mantenimiento");
       }
     }
-  };
-
-  const toggleAssetSelection = (assetId) => {
-    setNewMaintenance((prev) => ({
-      ...prev,
-      activos: prev.activos.includes(assetId)
-        ? prev.activos.filter((id) => id !== assetId)
-        : [...prev.activos, assetId],
-    }));
   };
 
   const handleOpenUpdateModal = (maintenance) => {

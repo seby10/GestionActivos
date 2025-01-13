@@ -224,11 +224,11 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                 <TableCell padding="checkbox">
                   <Checkbox
                     indeterminate={
-                      localSelectedAssets.length > 0 && 
+                      localSelectedAssets.length > 0 &&
                       localSelectedAssets.length < filteredAssets.length
                     }
                     checked={
-                      filteredAssets.length > 0 && 
+                      filteredAssets.length > 0 &&
                       localSelectedAssets.length === filteredAssets.length
                     }
                     onChange={() => {
@@ -255,7 +255,11 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                 <TableRow
                   key={asset.ID_ACT}
                   hover
-                  onClick={() => handleAssetToggle(asset.ID_ACT)}
+                  onMouseDown={(e) => {
+                    if (e.target.type !== 'checkbox') {
+                      handleAssetToggle(asset.ID_ACT);
+                    }
+                  }}
                   role="checkbox"
                   aria-checked={localSelectedAssets.includes(asset.ID_ACT)}
                   selected={localSelectedAssets.includes(asset.ID_ACT)}
@@ -263,6 +267,7 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={localSelectedAssets.includes(asset.ID_ACT)}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={() => handleAssetToggle(asset.ID_ACT)}
                     />
                   </TableCell>
@@ -274,6 +279,7 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                   <StyledTableCell>{asset.NOM_PRO || '-'}</StyledTableCell>
                   <StyledTableCell>{asset.EST_ACT}</StyledTableCell>
                 </TableRow>
+
               ))}
             </TableBody>
           </Table>

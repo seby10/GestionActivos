@@ -145,6 +145,7 @@ const EstadisticasFecha = () => {
         );
     }
 
+
     return (
         <Card elevation={3} sx={{ mb: 4 }}>
             <CardHeader

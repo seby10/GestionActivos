@@ -8,7 +8,7 @@ export const getActividadesMasFrecuentes = async () => {
         LEFT JOIN activo_actividad aa ON a.id = aa.actividad_id
         GROUP BY a.id, a.descripcion
         ORDER BY frecuencia DESC
-        LIMIT 3
+        LIMIT 5
       `);
     return rows;
   } catch (error) {
@@ -25,7 +25,7 @@ export const getComponentesMasUsados = async () => {
           LEFT JOIN activo_componente ac ON c.id = ac.componente_id
           GROUP BY c.id, c.descripcion
           ORDER BY cantidad DESC
-          LIMIT 3
+          LIMIT 5
         `);
     return rows;
   } catch (error) {
@@ -60,7 +60,6 @@ export const getRegistroMantenimientos = async () => {
         LEFT JOIN USUARIOS u ON m.ID_TEC_INT = u.ID_USU
         GROUP BY m.COD_MANT, m.FEC_INI_MANT, m.DESC_MANT, a.NOM_ACT
         ORDER BY m.FEC_INI_MANT DESC
-        LIMIT 5
       `);
     return rows;
   } catch (error) {

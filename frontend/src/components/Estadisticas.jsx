@@ -16,9 +16,22 @@ import {
   CircularProgress,
   Typography,
   Box,
-
+  TablePagination,
 } from "@mui/material";
+import {
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  Cell,
+} from "recharts";
 import EstadisticasFecha from "./EstadisticasFecha";
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
 const Estadisticas = () => {
   const [actividadesFrecuentes, setActividadesFrecuentes] = useState([]);
@@ -26,6 +39,10 @@ const Estadisticas = () => {
   const [registrosMantenimiento, setRegistrosMantenimiento] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Estados para paginación
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -37,10 +54,8 @@ const Estadisticas = () => {
       day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true,
     }).format(date);
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,6 +81,15 @@ const Estadisticas = () => {
     fetchData();
   }, []);
 
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" minHeight="300px">
@@ -85,14 +109,14 @@ const Estadisticas = () => {
   return (
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <EstadisticasFecha />
-      <Card elevation={3} sx={{ mb: .5 }}>
+      <Card elevation={3} sx={{ mb: 2 }}>
         <CardHeader
-          title="Estadísticas Historicas del Sistema"
+          title="Estadísticas Históricas del Sistema"
           sx={{ backgroundColor: '#f5f5f5' }}
         />
         <CardContent>
           <Grid container spacing={3}>
-            {/* Actividades más Frecuentes */}
+            {/* Actividades más Frecuentes - Gráfico de Pie */}
             <Grid item xs={12} md={6}>
               <Card elevation={3}>
                 <CardHeader
@@ -101,29 +125,30 @@ const Estadisticas = () => {
                   sx={{ backgroundColor: '#f5f5f5' }}
                 />
                 <CardContent>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell><Typography variant="subtitle2">Actividad</Typography></TableCell>
-                          <TableCell align="left"><Typography variant="subtitle2">Frecuencia</Typography></TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {actividadesFrecuentes.map((actividad) => (
-                          <TableRow key={actividad.descripcion}>
-                            <TableCell><Typography variant="body1">{actividad.descripcion}</Typography></TableCell>
-                            <TableCell align="left"><Typography variant="body1">{actividad.frecuencia}</Typography></TableCell>
-                          </TableRow>
+                  <Box display="flex" justifyContent="center" alignItems="center">
+                    <PieChart width={400} height={300}>
+                      <Pie
+                        data={actividadesFrecuentes}
+                        dataKey="frecuencia"
+                        nameKey="descripcion"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        label
+                      >
+                        {actividadesFrecuentes.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
 
-            {/* Componentes más Usados */}
+            {/* Componentes más Usados - Gráfico de Barras */}
             <Grid item xs={12} md={6}>
               <Card elevation={3}>
                 <CardHeader
@@ -132,29 +157,24 @@ const Estadisticas = () => {
                   sx={{ backgroundColor: '#f5f5f5' }}
                 />
                 <CardContent>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell><Typography variant="subtitle2">Componente</Typography></TableCell>
-                          <TableCell align="left"><Typography variant="subtitle2">Cantidad de Usos</Typography></TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {componentesUsados.map((componente) => (
-                          <TableRow key={componente.descripcion}>
-                            <TableCell><Typography variant="body1">{componente.descripcion}</Typography></TableCell>
-                            <TableCell align="left"><Typography variant="body1">{componente.cantidad}</Typography></TableCell>
-                          </TableRow>
+                  <Box display="flex" justifyContent="center" alignItems="center">
+                    <BarChart width={400} height={300} data={componentesUsados}>
+                      <XAxis dataKey="descripcion" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="cantidad" fill="#8884d8">
+                        {componentesUsados.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                      </Bar>
+                    </BarChart>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
 
-            {/* Registros de Mantenimiento Recientes */}
+            {/* Registros de Mantenimiento Recientes con Paginación */}
             <Grid item xs={12}>
               <Card elevation={3}>
                 <CardHeader
@@ -167,7 +187,7 @@ const Estadisticas = () => {
                     <Table>
                       <TableHead>
                         <TableRow>
-                          <TableCell><Typography variant="subtitle2">Codigo</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Código</Typography></TableCell>
                           <TableCell><Typography variant="subtitle2">Fecha Inicio</Typography></TableCell>
                           <TableCell><Typography variant="subtitle2">Fecha Fin</Typography></TableCell>
                           <TableCell><Typography variant="subtitle2">Descripción</Typography></TableCell>
@@ -175,27 +195,62 @@ const Estadisticas = () => {
                           <TableCell><Typography variant="subtitle2">Actividades</Typography></TableCell>
                           <TableCell><Typography variant="subtitle2">Componentes</Typography></TableCell>
                           <TableCell><Typography variant="subtitle2">Estado</Typography></TableCell>
-                          <TableCell><Typography variant="subtitle2s">Encargado</Typography></TableCell>
+                          <TableCell><Typography variant="subtitle2">Encargado</Typography></TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
-                        {registrosMantenimiento.map((registro) => (
-                          <TableRow key={registro.ID_DET_MANT}>
-                            <TableCell>{registro.COD_MANT}</TableCell>
-                            <TableCell>{formatDate(registro.FEC_INI_MANT)}</TableCell>
-                            <TableCell>{formatDate(registro.FEC_FIN_MANT) || '-'}</TableCell>
-                            <TableCell>{registro.DESC_MANT}</TableCell>
-                            <TableCell>{registro.NOM_ACT}</TableCell>
-                            <TableCell>{registro.actividades || '-'}</TableCell>
-                            <TableCell>{registro.componentes || '-'}</TableCell>
-                            <TableCell>{registro.EST_DET_MANT}</TableCell>
-                            <TableCell>{registro.NOM_USU === null
-                              ? registro.NOM_PRO
-                              : registro.NOM_USU}</TableCell>
-                          </TableRow>
-                        ))}
+                        {registrosMantenimiento
+                          .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                          .map((registro) => (
+                            <TableRow key={registro.ID_DET_MANT}>
+                              <TableCell>{registro.COD_MANT}</TableCell>
+                              <TableCell>{formatDate(registro.FEC_INI_MANT)}</TableCell>
+                              <TableCell>{formatDate(registro.FEC_FIN_MANT) || '-'}</TableCell>
+                              <TableCell>{registro.DESC_MANT}</TableCell>
+                              <TableCell>{registro.NOM_ACT}</TableCell>
+                              <TableCell>{registro.actividades || '-'}</TableCell>
+                              <TableCell>{registro.componentes || '-'}</TableCell>
+                              <TableCell>{registro.EST_DET_MANT}</TableCell>
+                              <TableCell>
+                                {registro.NOM_USU === null ? registro.NOM_PRO : registro.NOM_USU}
+                              </TableCell>
+                            </TableRow>
+                          ))}
                       </TableBody>
                     </Table>
+                    <TablePagination
+                      rowsPerPageOptions={[5, 10, 25]}
+                      component="div"
+                      count={registrosMantenimiento.length}
+                      rowsPerPage={rowsPerPage}
+                      page={page}
+                      onPageChange={handleChangePage}
+                      onRowsPerPageChange={handleChangeRowsPerPage}
+                      labelRowsPerPage="Filas por página"
+                      sx={{
+                        ".MuiTablePagination-toolbar": {
+                          minHeight: "52px",
+                          alignItems: "center",
+                          pr: 2,
+                          pl: 2,
+                        },
+                        ".MuiTablePagination-selectLabel": {
+                          m: 0,
+                        },
+                        ".MuiTablePagination-displayedRows": {
+                          m: 0,
+                        },
+                        ".MuiTablePagination-select": {
+                          mr: 2,
+                        },
+                        ".MuiTablePagination-actions": {
+                          ml: 2,
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                        },
+                      }}
+                    />
                   </TableContainer>
                 </CardContent>
               </Card>
