@@ -39,7 +39,7 @@ const Header = () => {
   return (
     <nav className="header">
       <div className="header-container">
-        <Link to="/" className="header-logo">
+        <Link className="header-logo">
           AssetCare
         </Link>
         <div className="menu-icon" onClick={() => setIsOpen(!isOpen)}>
@@ -104,7 +104,6 @@ const Header = () => {
           align-items: center;
           width: 100%;
           height: 80px;
-          
         }
 
         .header-logo {

@@ -26,10 +26,11 @@ import {
   styled,
 } from "@mui/material";
 import {
-  Visibility,
+  Settings,
   KeyboardArrowDown,
   KeyboardArrowUp,
 } from "@mui/icons-material";
+
 import ClearIcon from "@mui/icons-material/Clear";
 import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ActivoModal from "./ActivoModal";
@@ -125,6 +126,7 @@ const MaintenanceRow = ({
     try {
       await mantenimientosServices.finishMaintenance(maintenance.ID_MANT);
       onUpdate();
+      localStorage.removeItem("activos");
     } catch (error) {
       console.error("Error finishing maintenance:", error);
     } finally {
@@ -303,7 +305,7 @@ const MaintenanceRow = ({
                             color="primary"
                             onClick={() => openActivityModal(asset)}
                           >
-                            <Visibility />
+                            <Settings />
                           </IconButton>
                         </TableCell>
                       </TableRow>
@@ -547,12 +549,29 @@ const ExpandableTable = () => {
 
   const fetchTechnicians = async (type) => {
     try {
-      if (type === "internal") {
-        const users = await mantenimientosServices.getInternalUsers();
-        setInternalUsers(users);
+      // Primero intentamos obtener los datos del localStorage
+      const cachedData = localStorage.getItem(type === "internal" ? "internalUsers" : "externalProviders");
+  
+      if (cachedData) {
+        // Si los datos están en el localStorage, los usamos
+        const parsedData = JSON.parse(cachedData);
+        if (type === "internal") {
+          setInternalUsers(parsedData);
+        } else {
+          setExternalProviders(parsedData);
+        }
       } else {
-        const providers = await mantenimientosServices.getExternalProviders();
-        setExternalProviders(providers);
+        // Si los datos no están en el localStorage, hacemos la llamada a la API
+        let users = [];
+        if (type === "internal") {
+          users = await mantenimientosServices.getInternalUsers();
+          setInternalUsers(users);
+          localStorage.setItem("internalUsers", JSON.stringify(users)); // Guardamos en el localStorage
+        } else {
+          users = await mantenimientosServices.getExternalProviders();
+          setExternalProviders(users);
+          localStorage.setItem("externalProviders", JSON.stringify(users)); // Guardamos en el localStorage
+        }
       }
     } catch (error) {
       console.error(`Error fetching ${type} technicians:`, error);
@@ -638,6 +657,7 @@ const ExpandableTable = () => {
       );
 
       showAlert("Mantenimiento creado exitosamente", "success");
+      localStorage.removeItem("activos");
       await fetchMaintenances();
       handleCloseModal();
     } catch (error) {
@@ -677,7 +697,7 @@ const ExpandableTable = () => {
           },
         }}
       >
-        Crear Mantenimiento
+        <i className="bi bi-plus-circle me-2"></i>Crear Mantenimiento
       </Button>
 
       <Paper

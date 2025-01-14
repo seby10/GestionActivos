@@ -46,22 +46,31 @@ const ExcelComponent = ({ onDataUpload }) => {
     "ID_PRO",
     "PC_ACT",
   ];
+  // Cargar proveedores desde localStorage o desde la API
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [proveedoresRes] = await Promise.all([
-          axios.get("http://localhost:3000/api/proveedores"),
-        ]);
-        setProveedores(proveedoresRes.data);
-        setLoading(false);
-      } catch (err) {
-        setError("Error al cargar los datos.");
-        setLoading(false);
-      }
-    };
-    fetchData();
+    const storedProveedores = localStorage.getItem("proveedores");
+    
+    if (storedProveedores) {
+      setProveedores(JSON.parse(storedProveedores));
+      setLoading(false); // No hay necesidad de hacer una solicitud si ya están en el localStorage
+    } else {
+      fetchProveedoresFromAPI();
+    }
   }, []);
+
+  const fetchProveedoresFromAPI = async () => {
+    try {
+      setLoading(true);
+      const proveedoresRes = await axios.get("http://localhost:3000/api/proveedores");
+      setProveedores(proveedoresRes.data);
+      localStorage.setItem("proveedores", JSON.stringify(proveedoresRes.data)); // Guardar en localStorage
+      setLoading(false);
+    } catch (err) {
+      setError("Error al cargar los datos.");
+      setLoading(false);
+    }
+  };
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
@@ -246,10 +255,11 @@ const ExcelComponent = ({ onDataUpload }) => {
   return (
     <div className="d-flex align-items-center">
       <button
-        className="btn btn-primary ms-3 d-flex align-items-center"
+        className="btn ms-3 d-flex align-items-center"
+        style={{ backgroundColor: "#1976d2", color: "white", border: "none" }}
         onClick={() => setShowModal(true)}
       >
-        <i className="bi bi-plus-circle me-2"></i> Agregar Nuevo Activo
+        <i className="bi bi-plus-circle me-2"></i> AGREGAR ACTIVO
       </button>
 
       {showModal && (
@@ -490,8 +500,8 @@ const ExcelComponent = ({ onDataUpload }) => {
                       >
                         <option value="">Seleccione el estado</option>
                         <option value="Disponible">Disponible</option>
-                      <option value="En Mantenimiento">Mantenimiento</option>
-                      <option value="Nuevo">Nuevo</option>
+                        <option value="En Mantenimiento">Mantenimiento</option>
+                        <option value="Nuevo">Nuevo</option>
                       </select>
                     </div>
                     <div className="mb-3">

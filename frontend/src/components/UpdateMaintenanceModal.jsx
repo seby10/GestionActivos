@@ -19,7 +19,10 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
-import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon } from "@mui/icons-material";
+import {
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+} from "@mui/icons-material";
 import { mantenimientosServices } from "../services/mantenimientosServices";
 
 const UpdateMaintenanceModal = ({
@@ -118,7 +121,6 @@ const UpdateMaintenanceModal = ({
       }
     }
   }, [maintenance]);
-
   const handleUpdate = async () => {
     if (assetsToAdd.length > 0) {
       console.log("Activos añadidos:", assetsToAdd);
