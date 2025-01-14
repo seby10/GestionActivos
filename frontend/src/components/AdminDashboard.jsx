@@ -4,7 +4,7 @@ import Header from './Header';
 import ActivosTable from './Activos/ActivosTable';
 import MantenimientosTable from './mantenimientosTable';
 import Estadisticas from './Estadisticas';
-import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon } from '@mui/icons-material';
+import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon, BarChart as EstadisticasIcon } from '@mui/icons-material';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -51,7 +51,8 @@ const Dashboard = () => {
               className={`selector-button ${activeComponent === 'Estadisticas' ? 'active' : ''}`}
               onClick={() => handleSelectComponent('Estadisticas')}
             >
-              Estadísticas
+              <EstadisticasIcon className="selector-icon" />
+              <span className="button-text">Estadísticas</span>
             </button>
           </div>
         </div>
@@ -120,17 +121,17 @@ const Dashboard = () => {
 
         .selector-button:hover {
           background-color: #669bbc;
-          transform: translateY(-3px);  /* Añadimos un pequeño "elevado" al hacer hover */
+          transform: translateY(-3px);
         }
 
         .selector-icon {
           margin-right: 10px;
-          font-size: 1.5rem; /* Tamaño del icono */
+          font-size: 1.5rem;
         }
 
         .button-text {
           display: inline-block;
-          transition: opacity 0.3s ease;  /* Animación de desvanecimiento */
+          transition: opacity 0.3s ease;
         }
 
         /* Estilo responsivo */
@@ -150,19 +151,18 @@ const Dashboard = () => {
             gap: 15px;
           }
 
-          /* Escondemos el texto en pantallas pequeñas, pero mantenemos los iconos */
           .button-text {
             display: none;
           }
 
           .selector-button {
             padding: 10px 15px;
-            font-size: 1.2rem;  /* Aumentamos el tamaño de los iconos y botones */
+            font-size: 1.2rem;
             box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.15);
           }
 
           .selector-icon {
-            font-size: 2rem; /* Iconos más grandes en pantallas más pequeñas */
+            font-size: 2rem;
           }
         }
 
@@ -177,7 +177,7 @@ const Dashboard = () => {
           }
 
           .selector-icon {
-            font-size: 2.2rem; /* Iconos más grandes en pantallas muy pequeñas */
+            font-size: 2.2rem;
           }
         }
       `}</style>

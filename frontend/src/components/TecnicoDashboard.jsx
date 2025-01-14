@@ -6,7 +6,7 @@ import MantenimientosTable from './mantenimientosTable';
 import Estadisticas from './Estadisticas';
 
 // Importamos los iconos de Material-UI
-import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon } from '@mui/icons-material';
+import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon, BarChart as EstadisticasIcon } from '@mui/icons-material';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
@@ -53,7 +53,8 @@ const Dashboard = () => {
               className={`selector-button ${activeComponent === 'Estadisticas' ? 'active' : ''}`}
               onClick={() => handleSelectComponent('Estadisticas')}
             >
-              Estadísticas
+              <EstadisticasIcon className="selector-icon" />
+              <span className="button-text">Estadísticas</span>
             </button>
           </div>
         </div>
@@ -187,4 +188,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

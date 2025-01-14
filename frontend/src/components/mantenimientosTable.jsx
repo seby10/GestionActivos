@@ -270,7 +270,7 @@ const MaintenanceRow = ({
         </StyledTableCell>
       </TableRow>
       <TableRow ref={rowRef}>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
               <Typography variant="h6" gutterBottom component="div">
