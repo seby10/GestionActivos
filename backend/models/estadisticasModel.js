@@ -211,7 +211,10 @@ export const getDistribucionEstados = async (fechaInicio, fechaFin) => {
   }
 };
 
-export const getActividadesMasFrecuentesFecha = async (fechaInicio, fechaFin) => {
+export const getActividadesMasFrecuentesFecha = async (
+  fechaInicio,
+  fechaFin
+) => {
   try {
     const fechaInicioCompleta = `${fechaInicio} 00:00:00`;
     const fechaFinCompleta = `${fechaFin} 23:59:59`;
@@ -234,6 +237,32 @@ export const getActividadesMasFrecuentesFecha = async (fechaInicio, fechaFin) =>
     return rows;
   } catch (error) {
     console.error("Error fetching actividades mas frecuentes:", error);
+    throw error;
+  }
+};
+
+export const getComponentesMasUsadosFecha = async (fechaInicio, fechaFin) => {
+  try {
+    const fechaInicioCompleta = `${fechaInicio} 00:00:00`;
+    const fechaFinCompleta = `${fechaFin} 23:59:59`;
+
+    const [rows] = await pool.query(
+      `
+          SELECT c.descripcion, COUNT(ac.id) AS cantidad
+          FROM componentes c
+          LEFT JOIN activo_componente ac ON c.id = ac.componente_id
+          LEFT JOIN detalles_mantenimiento dm ON ac.id_det_mant = dm.ID_DET_MANT
+          LEFT JOIN mantenimientos m ON dm.ID_MANT_ASO = m.ID_MANT
+          WHERE m.FEC_INI_MANT BETWEEN ? AND ?
+          GROUP BY c.id, c.descripcion
+          ORDER BY cantidad DESC
+          LIMIT 3;
+        `,
+      [fechaInicioCompleta, fechaFinCompleta]
+    );
+    return rows;
+  } catch (error) {
+    console.error("Error fetching componentes mas usados:", error);
     throw error;
   }
 };

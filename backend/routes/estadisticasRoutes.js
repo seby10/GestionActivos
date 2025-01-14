@@ -9,7 +9,6 @@ import {
     getDistribucionEstadosController,
     getActividadesMasFrecuentesFechaController,
     getComponentesMasUsadosFechaController,
-    getRegistroMantenimientosFechaController
 } from "../controllers/estadisticasController.js";
 
 const router = express.Router();
@@ -23,6 +22,6 @@ router.get("/activosMasMantenidos", getActivosMasMantenidosController);
 router.get("/distribucionEstados", getDistribucionEstadosController);
 router.get("/actividadesFecha", getActividadesMasFrecuentesFechaController);
 router.get("/componentesFecha", getComponentesMasUsadosFechaController);
-router.get("/registrosF", getRegistroMantenimientosFechaController);
+// router.get("/registrosF", getRegistroMantenimientosFechaController);
 
 export default router;

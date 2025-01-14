@@ -8,7 +8,6 @@ import {
   getDistribucionEstados,
   getActividadesMasFrecuentesFecha,
   getComponentesMasUsadosFecha,
-  getRegistroMantenimientosFecha,
 } from "../models/estadisticasModel.js";
 
 export const getActividadesFrecuentesController = async (req, res) => {
@@ -188,30 +187,6 @@ export const getComponentesMasUsadosFechaController = async (req, res) => {
     );
     res.status(500).json({
       message: "Error al obtener los componentes mas usados por fecha.",
-    });
-  }
-};
-
-export const getRegistroMantenimientosFechaController = async (req, res) => {
-  try {
-    const { fechaInicio, fechaFin } = req.query;
-
-    if (!fechaInicio || !fechaFin) {
-      return res.status(400).json({
-        message:
-          "Se requieren fechaInicio y fechaFin como parámetros de consulta.",
-      });
-    }
-
-    const registroF = await getRegistroMantenimientosFecha(fechaInicio, fechaFin);
-    res.status(200).json(registroF);
-  } catch (error) {
-    console.error(
-      "Error al obtener el registro de mantenimientos por fecha:",
-      error
-    );
-    res.status(500).json({
-      message: "Error al obtener el registro de mantenimientos por fecha.",
     });
   }
 };
