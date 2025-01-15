@@ -104,9 +104,27 @@ export const getMantenimientos = async () => {
 export const getDetallesMantenimiento = async (id) => {
   try {
     const [rows] = await pool.query(
-      "SELECT DM.*, A.COD_ACT, A.NOM_ACT, A.MAR_ACT, A.CAT_ACT, A.UBI_ACT, A.EST_ACT FROM DETALLES_MANTENIMIENTO DM JOIN ACTIVOS A ON DM.ID_ACT_MANT = A.ID_ACT WHERE DM.ID_MANT_ASO = ?",
+      `SELECT 
+        DM.*, 
+        A.COD_ACT, 
+        A.NOM_ACT, 
+        A.MAR_ACT, 
+        A.CAT_ACT, 
+        A.UBI_ACT, 
+        A.EST_ACT, 
+        A.ID_PRO, 
+        P.NOM_PRO 
+      FROM 
+        DETALLES_MANTENIMIENTO DM
+      JOIN 
+        ACTIVOS A ON DM.ID_ACT_MANT = A.ID_ACT
+      JOIN 
+        PROVEEDORES P ON A.ID_PRO = P.ID_PRO
+      WHERE 
+        DM.ID_MANT_ASO = ?
+      `,
       [id]
-    );
+    );    
     return rows;
   } catch (error) {
     console.error("Error fetching detalles mantenimiento:", error);

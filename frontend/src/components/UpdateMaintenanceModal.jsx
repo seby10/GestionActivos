@@ -8,6 +8,7 @@ import {
   TextField,
   Alert,
   MenuItem,
+  Box,
 } from "@mui/material";
 import { mantenimientosServices } from "../services/mantenimientosServices";
 import ActivosModal from './ActivosModal';
@@ -49,6 +50,7 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
     });
     fetchTechnicians(value);
   };
+
   const fetchAssetsForMaintenance = useCallback(async () => {
     if (maintenance) {
       try {
@@ -60,6 +62,8 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
             isAssociated: true,
             isDeletable: canBeDeleted,
             ID_ACT: asset.ID_ACT_MANT,
+            ID_PRO: asset.ID_PRO,
+            NOM_PRO: asset.NOM_PRO,
             maintenanceDetails: {
               ID_MANT_ASO: asset.ID_MANT_ASO,
               EST_DET_MANT: asset.EST_DET_MANT,
@@ -67,7 +71,7 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
             },
           };
         }));
-  
+
         setAssets(updatedAssets);
       } catch (error) {
         console.error("Error fetching assets:", error);
@@ -76,8 +80,7 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
       }
     }
   }, [maintenance, showAlert]);
-  
-  
+
   const fetchTechnicians = async (type) => {
     try {
       if (type === 'internal') {
@@ -86,6 +89,7 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
         setExternalProviders([]);
       } else {
         const providers = await mantenimientosServices.getExternalProviders();
+        console.log("Proveedores externos:", providers); // Verifica los datos
         setExternalProviders(providers);
         setInternalUsers([]);
       }
@@ -123,7 +127,6 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
 
   const handleUpdate = async () => {
     try {
-
       const updatedMaintenanceData = {
         id: maintenance.ID_MANT,
         DESC_MANT: updatedMaintenance.DESC_MANT,
@@ -185,10 +188,21 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
       pendingChanges.removedAssets.length > 0
     );
   };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Actualizar Mantenimiento - {updatedMaintenance?.COD_MANT}</DialogTitle>
       <DialogContent>
+        <Box sx={{ mb: 2 }}>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleOpenActivosModal}
+            sx={{ ml: 2 }}
+          >
+            Gestionar Activos
+          </Button>
+        </Box>
         {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
         <TextField
           label="Descripción"
@@ -251,9 +265,6 @@ const UpdateMaintenanceModal = ({ open, onClose, maintenance, onUpdate, showAler
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={handleOpenActivosModal} color="primary">
-          Gestionar Activos
-        </Button>
         <Button onClick={handleUpdate} color="primary" disabled={!hasChanges()}>
           Actualizar
         </Button>

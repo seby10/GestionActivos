@@ -106,18 +106,7 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
   };
 
   const handleAssetToggle = (assetId) => {
-    
     setLocalSelectedAssets(prev => {
-      if (prev.includes(assetId)) {
-        return prev.filter(id => id !== assetId);
-      } else {
-        return [...prev, assetId];
-      }
-    });
-  };
-
-  const handleRemoveToggle = (assetId) => {
-    setAssetsToDelete(prev => {
       if (prev.includes(assetId)) {
         return prev.filter(id => id !== assetId);
       } else {
@@ -129,6 +118,12 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
   const handleDeleteCheckboxChange = (event, assetId) => {
     const checked = event.target.checked;
     const associatedAssets = assetsList.filter(asset => asset.isAssociated);
+    const asset = assetsList.find(a => a.ID_ACT === assetId);
+    
+    if (checked) {
+      setLocalSelectedAssets(prev => prev.filter(id => id !== assetId)); 
+    }
+
     if (checked) {
       const updatedAssetsToDelete = [...assetsToDelete, assetId];
       const remainingAssociatedAssets = associatedAssets.filter(
@@ -139,7 +134,7 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
         setTimeout(() => {
           setErrorMessage('');
         }, 3000);
-        return; 
+        return;
       }
       setAssetsToDelete(updatedAssetsToDelete);
     } else {
@@ -248,9 +243,30 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
           <Table stickyHeader>
             <StyledTableHead>
               <TableRow>
-                <TableCell padding="checkbox">
-                  <strong>{isGestionar ? 'Añadir' : 'Seleccionar'}</strong>
-                </TableCell>
+              <TableCell padding="checkbox">
+                {isGestionar ? (
+                  <strong>Añadir</strong>
+                ) : (
+                  <Checkbox
+                    indeterminate={
+                      localSelectedAssets.length > 0 &&
+                      localSelectedAssets.length < filteredAssets.length
+                    }
+                    checked={
+                      filteredAssets.length > 0 &&
+                      localSelectedAssets.length === filteredAssets.length
+                    }
+                    onChange={() => {
+                      const filteredIds = filteredAssets.map(asset => asset.ID_ACT);
+                      if (localSelectedAssets.length === filteredIds.length) {
+                        setLocalSelectedAssets([]);
+                      } else {
+                        setLocalSelectedAssets(filteredIds);
+                      }
+                    }}
+                  />
+                )}
+              </TableCell>
                 {isGestionar && (
                   <TableCell padding="checkbox">
                     <strong>Eliminar</strong>
@@ -270,7 +286,12 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                 <TableRow
                   key={asset.ID_ACT}
                   hover
-                  onClick={isGestionar ? null : () => handleAssetToggle(asset.ID_ACT)}
+                  onMouseDown={(e) => {
+                    if (e.target.type !== 'checkbox') {
+                      handleAssetToggle(asset.ID_ACT);
+                    }
+                  }}
+                  onClick={!isGestionar ? null : () => handleAssetToggle(asset.ID_ACT)}
                   role="checkbox"
                   aria-checked={localSelectedAssets.includes(asset.ID_ACT)}
                   selected={localSelectedAssets.includes(asset.ID_ACT)}
@@ -278,6 +299,7 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={localSelectedAssets.includes(asset.ID_ACT)}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={() => handleAssetToggle(asset.ID_ACT)}
                       disabled={
                         asset.isAssociated ||
@@ -288,7 +310,11 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                   {isGestionar && (
                     <TableCell padding="checkbox">
                       <Tooltip
-                        title={!asset.isDeletable ? 'No se puede eliminar: Tiene actividades o componentes disponibles.' : ''}
+                        title={
+                          asset.isAssociated && !asset.isDeletable
+                            ? 'No se puede eliminar: Tiene actividades o componentes disponibles.'
+                            : ''
+                        }
                         arrow
                       >
                         <span>
@@ -326,6 +352,29 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
           labelDisplayedRows={({ from, to, count }) =>
             `${from}-${to} de ${count !== -1 ? count : `más de ${to}`}`
           }
+          sx={{
+            ".MuiTablePagination-toolbar": {
+              minHeight: "52px",
+              alignItems: "center",
+              pr: 2,
+              pl: 2,
+            },
+            ".MuiTablePagination-selectLabel": {
+              m: 0,
+            },
+            ".MuiTablePagination-displayedRows": {
+              m: 0,
+            },
+            ".MuiTablePagination-select": {
+              mr: 2,
+            },
+            ".MuiTablePagination-actions": {
+              ml: 2,
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+            },
+          }}
         />
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
