@@ -295,6 +295,11 @@ const EstadisticasFecha = () => {
             setFechaFin("");
             setFechaError("");
             setMensajeNulo("");
+            setEstadisticas(null);
+            setActivosMasMantenidos([]);
+            setDistribucionEstados([]);
+            setActividadesFrecuentes([]);
+            setComponentesUsados([]);
         }, 300);
     };
 
