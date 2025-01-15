@@ -68,69 +68,26 @@ export const getRegistroMantenimientos = async () => {
   }
 };
 
-export const getMantenimientosPorPeriodo = async (
-  fechaInicio,
-  fechaFin,
-  agrupacion = "day"
-) => {
+export const getMantenimientosPorPeriodo = async (fechaInicio, fechaFin) => {
   try {
     const fechaInicioCompleta = `${fechaInicio} 00:00:00`;
     const fechaFinCompleta = `${fechaFin} 23:59:59`;
-    const groupFormat = {
-      day: {
-        sql: "%Y-%m-%d",
-        display: "%d %M %Y",
-      },
-      week: {
-        sql: "%Y-%u",
-        display: "Semana %u, %Y",
-      },
-      month: {
-        sql: "%Y-%m",
-        display: "%M %Y",
-      },
-    };
 
     const [rows] = await pool.query(
       `
-      WITH RECURSIVE DateSequence AS (
-        SELECT ? as fecha
-        UNION ALL
-        SELECT 
-          CASE 
-            WHEN ? = 'day' THEN fecha + INTERVAL 1 DAY
-            WHEN ? = 'week' THEN fecha + INTERVAL 1 WEEK
-            WHEN ? = 'month' THEN fecha + INTERVAL 1 MONTH
-          END
-        FROM DateSequence
-        WHERE fecha < ?
-      )
       SELECT 
-        DATE_FORMAT(d.fecha, ?) as periodo,
-        DATE_FORMAT(d.fecha, ?) as periodo_display,
+        DATE_FORMAT(m.FEC_INI_MANT, '%Y-%m-%d') as fecha,
         COUNT(m.ID_MANT) as cantidad
-      FROM DateSequence d
-      LEFT JOIN MANTENIMIENTOS m ON 
-        DATE_FORMAT(m.FEC_INI_MANT, ?) = DATE_FORMAT(d.fecha, ?)
-      GROUP BY periodo, periodo_display
-      ORDER BY periodo;
+      FROM MANTENIMIENTOS m
+      WHERE m.FEC_INI_MANT BETWEEN ? AND ?
+      GROUP BY fecha
+      ORDER BY fecha;
       `,
-      [
-        fechaInicioCompleta,
-        agrupacion,
-        agrupacion,
-        agrupacion,
-        fechaFinCompleta,
-        groupFormat[agrupacion].sql,
-        groupFormat[agrupacion].display,
-        groupFormat[agrupacion].sql,
-        groupFormat[agrupacion].sql,
-      ]
+      [fechaInicioCompleta, fechaFinCompleta]
     );
 
     return rows.map((row) => ({
-      periodo: row.periodo,
-      label: row.periodo_display,
+      fecha: row.fecha,
       cantidad: Number(row.cantidad),
     }));
   } catch (error) {

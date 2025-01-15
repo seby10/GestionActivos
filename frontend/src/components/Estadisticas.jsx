@@ -76,14 +76,14 @@ const Estadisticas = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [actividadesRes, componentesRes, registrosRes] = await Promise.all([
-          axios.get("http://localhost:3000/api/estadisticas/actividadesFrec"),
-          axios.get("http://localhost:3000/api/estadisticas/componentesUsados"),
+        const [registrosRes] = await Promise.all([
+          //axios.get("http://localhost:3000/api/estadisticas/actividadesFrec"),
+          //axios.get("http://localhost:3000/api/estadisticas/componentesUsados"),
           axios.get("http://localhost:3000/api/estadisticas/registroMantenimientos")
         ]);
 
-        setActividadesFrecuentes(actividadesRes.data);
-        setComponentesUsados(componentesRes.data);
+        //setActividadesFrecuentes(actividadesRes.data);
+        //setComponentesUsados(componentesRes.data);
         setRegistrosMantenimiento(registrosRes.data);
       } catch (err) {
         setError("Error al cargar los datos estadísticos");

@@ -48,7 +48,7 @@ export const getRegistroMantenimientosController = async (req, res) => {
 
 export const getMantenimientosPorPeriodoController = async (req, res) => {
   try {
-    const { fechaInicio, fechaFin, agrupacion } = req.query;
+    const { fechaInicio, fechaFin } = req.query;
 
     if (!fechaInicio || !fechaFin) {
       return res.status(400).json({
@@ -59,8 +59,7 @@ export const getMantenimientosPorPeriodoController = async (req, res) => {
 
     const mantenimientos = await getMantenimientosPorPeriodo(
       fechaInicio,
-      fechaFin,
-      agrupacion || "day"
+      fechaFin
     );
     res.status(200).json(mantenimientos);
   } catch (error) {
