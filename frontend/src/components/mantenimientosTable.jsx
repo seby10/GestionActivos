@@ -80,6 +80,7 @@ const MaintenanceRow = ({
   const [finishLoading, setFinishLoading] = useState(false);
   const [activoSeleccionado, setActivoSeleccionado] = useState(null);
   const rowRef = useRef(null);
+  const [invalidDates, setInvalidDates] = useState(false);
 
   const openActivityModal = (asset) => {
     console.log("Activo seleccionado:", asset);
@@ -120,8 +121,17 @@ const MaintenanceRow = ({
     }
     setOpen(!open);
   };
+  const isStartDateBeforeEndDate = () => {
+    const startDate = new Date(maintenance.FEC_INI_MANT);
+    const endDate = maintenance.FEC_FIN_MANT ? new Date(maintenance.FEC_FIN_MANT) : new Date();
+    return startDate < endDate;
+  };
 
   const handleFinishMaintenance = async () => {
+    if (!isStartDateBeforeEndDate()) {
+      setInvalidDates(true); 
+      return;
+    }
     setFinishLoading(true);
     try {
       await mantenimientosServices.finishMaintenance(maintenance.ID_MANT);
@@ -210,7 +220,8 @@ const MaintenanceRow = ({
             disabled={
               !canFinish ||
               maintenance.ESTADO_MANT === "Finalizado" ||
-              finishLoading
+              finishLoading ||
+              !isStartDateBeforeEndDate() 
             }
             variant={
               maintenance.ESTADO_MANT === "Finalizado"

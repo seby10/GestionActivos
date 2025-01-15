@@ -305,7 +305,7 @@ const ActivoHistorialModal = ({ activoId, activoCod, closeModal }) => {
                               fontWeight: "bold",
                             }}
                           >
-                            {item.ESTADO_MANT}
+                            {item.estado_detalle}
                           </span>
                         </Typography>
 

@@ -124,10 +124,10 @@ const Estadisticas = () => {
     <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
       <EstadisticasFecha />
       <Card elevation={3} sx={{ mb: 2 }}>
-        <CardHeader
+        {/*<CardHeader
           title="Estadísticas Históricas del Sistema"
           sx={{ backgroundColor: '#f5f5f5' }}
-        />
+        />*/}
         <CardContent>
           <Grid container spacing={3}>
             {/* Actividades más Frecuentes - Gráfico de Pie */}
