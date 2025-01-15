@@ -148,7 +148,7 @@ export const getEstadisticasMantenimiento = async (fechaInicio, fechaFin) => {
         SELECT 
           COUNT(*) as total_mantenimientos,
           COUNT(CASE WHEN ESTADO_MANT = 'Finalizado' THEN 1 END) as mantenimientos_finalizados,
-          AVG(TIMESTAMPDIFF(HOUR, FEC_INI_MANT, FEC_FIN_MANT)) as promedio_duracion_horas,
+          TRUNCATE(AVG(TIMESTAMPDIFF(HOUR, FEC_INI_MANT, FEC_FIN_MANT)), 2) as promedio_duracion_horas,
           MIN(TIMESTAMPDIFF(HOUR, FEC_INI_MANT, FEC_FIN_MANT)) as min_duracion_horas,
           MAX(TIMESTAMPDIFF(HOUR, FEC_INI_MANT, FEC_FIN_MANT)) as max_duracion_horas
         FROM MANTENIMIENTOS
@@ -229,7 +229,7 @@ export const getActividadesMasFrecuentesFecha = async (
         WHERE m.FEC_INI_MANT BETWEEN ? AND ?
         GROUP BY a.id, a.descripcion
         ORDER BY frecuencia DESC
-        LIMIT 3;
+        LIMIT 5;
       `,
       [fechaInicioCompleta, fechaFinCompleta]
     );
@@ -256,7 +256,7 @@ export const getComponentesMasUsadosFecha = async (fechaInicio, fechaFin) => {
           WHERE m.FEC_INI_MANT BETWEEN ? AND ?
           GROUP BY c.id, c.descripcion
           ORDER BY cantidad DESC
-          LIMIT 3;
+          LIMIT 5;
         `,
       [fechaInicioCompleta, fechaFinCompleta]
     );

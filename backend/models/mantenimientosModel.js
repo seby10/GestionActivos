@@ -66,7 +66,7 @@ export const addDetallesMantenimiento = async (detalle) => {
 export const getActivosByEstado = async () => {
   try {
     const [rows] = await pool.query(
-      "SELECT *, p.NOM_PRO FROM ACTIVOS LEFT JOIN PROVEEDORES p ON ACTIVOS.ID_PRO = p.ID_PRO WHERE EST_ACT != 'En Mantenimiento'"
+      "SELECT *, p.NOM_PRO FROM ACTIVOS LEFT JOIN PROVEEDORES p ON ACTIVOS.ID_PRO = p.ID_PRO WHERE EST_ACT != 'En Mantenimiento' AND EST_ACT != 'No Disponible'"
     );
     return rows;
   } catch (error) {
