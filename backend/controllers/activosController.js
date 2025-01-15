@@ -65,15 +65,47 @@ export const editActivo = async (req, res) => {
 };
 
 export const addActivoController = async (req, res) => {
-  const {COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = req.body;
-  try {
-    const result = await addActivo({COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT });
-    console.log(`Activo agregado con ID: ${result.id}`);
+  const { COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = req.body;
 
-    res.status(200).json({ message: 'Activo agregado correctamente', id: result.id });
+  try {
+    // Intentar agregar el activo
+    const result = await addActivo({
+      COD_ACT,
+      NOM_ACT,
+      MAR_ACT: MAR_ACT || 'Desconocido',
+      CAT_ACT,
+      UBI_ACT,
+      EST_ACT,
+      ID_PRO,
+      PC_ACT
+    });
+
+    if (result.success) {
+      res.status(200).json({
+        message: 'Activo agregado correctamente',
+        id: result.id
+      });
+    } else {
+      // Manejar caso de duplicados u otros mensajes
+      if (result.message === "Activo duplicado") {
+        return res.status(409).json({
+          message: `El activo con código ${COD_ACT} ya existe (duplicado).`,
+          detalles: { COD_ACT }
+        });
+      }
+      
+      // Manejar otros errores específicos de la lógica de negocio
+      return res.status(400).json({
+        message: 'No se pudo agregar el activo.',
+        detalles: result.message || 'Error desconocido'
+      });
+    }
   } catch (error) {
     console.error('Error al agregar el activo:', error);
-    res.status(500).json({ message: 'Hubo un error al agregar el activo', error: error.message });
+    res.status(500).json({
+      message: 'Hubo un error al agregar el activo.',
+      error: error.message
+    });
   }
 };
 

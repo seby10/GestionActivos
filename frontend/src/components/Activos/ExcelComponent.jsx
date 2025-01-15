@@ -49,7 +49,7 @@ const ExcelComponent = ({ onDataUpload }) => {
   // Cargar proveedores desde localStorage o desde la API
   useEffect(() => {
     const storedProveedores = localStorage.getItem("proveedores");
-    
+
     if (storedProveedores) {
       setProveedores(JSON.parse(storedProveedores));
       setLoading(false); // No hay necesidad de hacer una solicitud si ya están en el localStorage
@@ -61,7 +61,9 @@ const ExcelComponent = ({ onDataUpload }) => {
   const fetchProveedoresFromAPI = async () => {
     try {
       setLoading(true);
-      const proveedoresRes = await axios.get("http://localhost:3000/api/proveedores");
+      const proveedoresRes = await axios.get(
+        "http://localhost:3000/api/proveedores"
+      );
       setProveedores(proveedoresRes.data);
       localStorage.setItem("proveedores", JSON.stringify(proveedoresRes.data)); // Guardar en localStorage
       setLoading(false);
@@ -124,9 +126,12 @@ const ExcelComponent = ({ onDataUpload }) => {
   };
   const handleConfirmUpload = async () => {
     console.log("Datos del Excel:", excelData);
-  
+
     const activos = excelData.rows
-      .filter(row => row[0] && row[1] && row[2] && row[3] && row[4] && row[5] && row[6]) 
+      .filter(
+        (row) =>
+          row[0] && row[1] && row[2] && row[3] && row[4] && row[5] && row[6]
+      )
       .map((row) => ({
         COD_ACT: row[0],
         NOM_ACT: row[1],
@@ -137,35 +142,42 @@ const ExcelComponent = ({ onDataUpload }) => {
         ID_PRO: row[6],
         PC_ACT: formData.PC_ACT,
       }));
-  
+
     try {
-      const response = await axios.post('http://localhost:3000/api/activos/excel', activos);
-      
+      const response = await axios.post(
+        "http://localhost:3000/api/activos/excel",
+        activos
+      );
+
       if (response.data.duplicados && response.data.duplicados.length > 0) {
-        const duplicadosMensaje = `Existen los siguientes activos duplicados: ${response.data.duplicados.join(', ')}. No se puede proceder con la carga.`;
+        const duplicadosMensaje = `Existen los siguientes activos duplicados: ${response.data.duplicados.join(
+          ", "
+        )}. No se puede proceder con la carga.`;
         setAlertMessage(duplicadosMensaje);
-        setAlertSeverity('warning');
+        setAlertSeverity("warning");
       } else {
         setAlertMessage(response.data.message);
-        setAlertSeverity('success');
+        setAlertSeverity("success");
+        localStorage.removeItem("activos");
       }
       setShowAlert(true);
-      
+
       setShowModal(false);
-  
     } catch (error) {
       const errorMessage = error.response?.data?.duplicados
-        ? `Se encontraron los siguientes activos duplicados: ${error.response.data.duplicados.join(', ')}.`
+        ? `Se encontraron los siguientes activos duplicados: ${error.response.data.duplicados.join(
+            ", "
+          )}.`
         : "Hubo un error al cargar los activos";
-      
+
       setAlertMessage(errorMessage);
       setAlertSeverity(error.response?.data?.duplicados ? "warning" : "error");
       setShowAlert(true);
-  
+
       setShowModal(false);
     }
   };
-  
+
   const handleCloseModal = () => {
     setFile(null);
     setExcelData([]);
@@ -500,8 +512,8 @@ const ExcelComponent = ({ onDataUpload }) => {
                       >
                         <option value="">Seleccione el estado</option>
                         <option value="Disponible">Disponible</option>
-                        <option value="En Mantenimiento">Mantenimiento</option>
-                        <option value="Nuevo">Nuevo</option>
+                        <option value="Defectuoso">Defectuoso</option>
+                        <option value="No Disponible">No Disponible</option>
                       </select>
                     </div>
                     <div className="mb-3">
