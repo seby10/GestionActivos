@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Table,
   TableBody,
@@ -26,17 +26,20 @@ import {
   styled,
 } from "@mui/material";
 import {
-  Visibility,
+  Settings,
   KeyboardArrowDown,
   KeyboardArrowUp,
 } from "@mui/icons-material";
+
 import ClearIcon from "@mui/icons-material/Clear";
+import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import ActivoModal from "./ActivoModal";
 import { mantenimientosServices } from "../services/mantenimientosServices.js";
 import UpdateMaintenanceModal from "../components/UpdateMaintenanceModal";
+import ActivosModal from './ActivosModal';
 
 const StyledTableHead = styled(TableHead)(({ theme }) => ({
-  backgroundColor: theme.palette.primary.main,
+  backgroundColor: theme.palette.primary.dark,
   "& .MuiTableCell-head": {
     color: theme.palette.common.white,
     fontWeight: "bold",
@@ -76,9 +79,11 @@ const MaintenanceRow = ({
   const [canFinish, setCanFinish] = useState(false);
   const [finishLoading, setFinishLoading] = useState(false);
   const [activoSeleccionado, setActivoSeleccionado] = useState(null);
+  const rowRef = useRef(null);
+  const [invalidDates, setInvalidDates] = useState(false);
 
   const openActivityModal = (asset) => {
-    console.log("Activo seleccionado:", asset); // Verifica el contenido
+    console.log("Activo seleccionado:", asset);
     setActivoSeleccionado(asset);
   };
 
@@ -91,15 +96,23 @@ const MaintenanceRow = ({
     if (!open) {
       setLoadingAssets(true);
       try {
-        const fetchedAssets =
-          await mantenimientosServices.getMaintenanceDetails(
-            maintenance.ID_MANT
-          );
+        const fetchedAssets = await mantenimientosServices.getMaintenanceDetails(
+          maintenance.ID_MANT
+        );
         setAssets(fetchedAssets);
         const allInMaintenance = fetchedAssets.every(
           (asset) => asset.EST_DET_MANT === "Finalizado"
         );
         setCanFinish(allInMaintenance);
+
+        setTimeout(() => {
+          if (rowRef.current) {
+            rowRef.current.scrollIntoView({
+              behavior: 'smooth',
+              block: 'start',
+            });
+          }
+        }, 100);
       } catch (error) {
         console.error("Error loading maintenance details:", error);
       } finally {
@@ -108,12 +121,22 @@ const MaintenanceRow = ({
     }
     setOpen(!open);
   };
+  const isStartDateBeforeEndDate = () => {
+    const startDate = new Date(maintenance.FEC_INI_MANT);
+    const endDate = maintenance.FEC_FIN_MANT ? new Date(maintenance.FEC_FIN_MANT) : new Date();
+    return startDate < endDate;
+  };
 
   const handleFinishMaintenance = async () => {
+    if (!isStartDateBeforeEndDate()) {
+      setInvalidDates(true); 
+      return;
+    }
     setFinishLoading(true);
     try {
       await mantenimientosServices.finishMaintenance(maintenance.ID_MANT);
       onUpdate();
+      localStorage.removeItem("activos");
     } catch (error) {
       console.error("Error finishing maintenance:", error);
     } finally {
@@ -152,29 +175,32 @@ const MaintenanceRow = ({
           {formatDate(maintenance.FEC_INI_MANT)}
         </StyledTableCell>
         <StyledTableCell>
-          {maintenance.ID_TEC_INT === null
-            ? maintenance.NOM_PRO
-            : maintenance.NOM_USU}
+          {formatDate(maintenance.FEC_FIN_MANT) || '-'}
         </StyledTableCell>
-        <StyledTableCell>
-          <Typography
-            variant="body2"
-            sx={{
-              backgroundColor:
-                maintenance.ID_TEC_INT === null ? "#ff9800" : "#4caf50",
-              color: "white",
-              padding: "4px 8px",
-              borderRadius: "4px",
-              display: "inline-block",
-            }}
-          >
-            {maintenance.ID_TEC_INT === null ? "Externo" : "Interno"}
-          </Typography>
-        </StyledTableCell>
-        <StyledTableCell>
-          <Typography
-            variant="body2"
-            sx={{
+          <StyledTableCell>
+            {maintenance.ID_TEC_INT === null
+              ? maintenance.NOM_PRO
+              : maintenance.NOM_USU}
+          </StyledTableCell>
+          <StyledTableCell>
+            <Typography
+              variant="body2"
+              sx={{
+                backgroundColor:
+                  maintenance.ID_TEC_INT === null ? "#ff9800" : "#4caf50",
+                color: "white",
+                padding: "4px 8px",
+                borderRadius: "4px",
+                display: "inline-block",
+              }}
+            >
+              {maintenance.ID_TEC_INT === null ? "Externo" : "Interno"}
+            </Typography>
+          </StyledTableCell>
+          <StyledTableCell>
+            <Typography
+              variant="body2"
+              sx={{
               backgroundColor:
                 maintenance.ESTADO_MANT === "Finalizado"
                   ? "#4caf50"
@@ -194,7 +220,8 @@ const MaintenanceRow = ({
             disabled={
               !canFinish ||
               maintenance.ESTADO_MANT === "Finalizado" ||
-              finishLoading
+              finishLoading ||
+              !isStartDateBeforeEndDate() 
             }
             variant={
               maintenance.ESTADO_MANT === "Finalizado"
@@ -253,8 +280,8 @@ const MaintenanceRow = ({
           </Button>
         </StyledTableCell>
       </TableRow>
-      <TableRow>
-        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}>
+      <TableRow ref={rowRef}>
+        <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box margin={1}>
               <Typography variant="h6" gutterBottom component="div">
@@ -289,7 +316,7 @@ const MaintenanceRow = ({
                             color="primary"
                             onClick={() => openActivityModal(asset)}
                           >
-                            <Visibility />
+                            <Settings />
                           </IconButton>
                         </TableCell>
                       </TableRow>
@@ -301,7 +328,6 @@ const MaintenanceRow = ({
           </Collapse>
         </TableCell>
       </TableRow>
-      {/* Modal */}
       {activoSeleccionado && (
         <ActivoModal
           activoId={activoSeleccionado.ID_DET_MANT}
@@ -335,7 +361,8 @@ const ExpandableTable = () => {
   const [assetsList, setAssetsList] = useState([]);
   const [filterCode, setFilterCode] = useState("");
   const [filterTechnician, setFilterTechnician] = useState("");
-  const [filterDate, setFilterDate] = useState("");
+  const [filterStartDate, setFilterStartDate] = useState("");
+  const [filterEndDate, setFilterEndDate] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [selectedMaintenance, setSelectedMaintenance] = useState(null);
@@ -343,35 +370,107 @@ const ExpandableTable = () => {
   //const [filterType, setFilterType] = useState('');
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [activosModalOpen, setActivosModalOpen] = useState(false);
+  const [sortOrder, setSortOrder] = useState("desc");
+  const [dateError, setDateError] = useState("");
+
+  const handleStartDateChange = (e) => {
+    const startDate = e.target.value;
+    if (filterEndDate && new Date(startDate) > new Date(filterEndDate)) {
+      setDateError("La fecha de inicio no puede ser mayor que la fecha de fin.");
+    } else {
+      setDateError("");
+    }
+    setFilterStartDate(startDate);
+  };
+
+  const handleEndDateChange = (e) => {
+    const endDate = e.target.value;
+    if (filterStartDate && new Date(filterStartDate) > new Date(endDate)) {
+      setDateError("La fecha de fin no puede ser menor que la fecha de inicio.");
+    } else {
+      setDateError("");
+    }
+    setFilterEndDate(endDate);
+  };
 
   const clearAllFilters = () => {
     setFilterCode("");
     setFilterTechnician("");
-    setFilterDate("");
     setFilterStatus("");
+    setFilterStartDate("");
+    setFilterEndDate("");
     setPage(0);
+    setDateError("");
   };
 
-  // Obtener mantenimientos filtrados y paginados
+  const resetDateFilters = () => {
+    setFilterStartDate("");
+    setFilterEndDate("");
+    setDateError("");
+  };
+
+
   const getFilteredMaintenances = () => {
     const filtered = maintenances.filter((maintenance) => {
+      // Filtro por código
       const matchCode = maintenance.COD_MANT.toLowerCase().includes(
         filterCode.toLowerCase()
       );
+
+      // Filtro por técnico
       const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || "")
         .toLowerCase()
         .includes(filterTechnician.toLowerCase());
-      const matchDate =
-        !filterDate || maintenance.FEC_INI_MANT.includes(filterDate);
+
+      // Filtro por estado
       const matchStatus =
         !filterStatus ||
         maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
 
+      // Filtro por fechas
+      let matchDate = true;
+
+      if (filterStartDate || filterEndDate) {
+        // Asegúrate de convertir las fechas correctamente
+        const maintenanceDate = new Date(maintenance.FEC_INI_MANT);
+        console.log("maintenanceDate", maintenanceDate);
+
+        if (filterStartDate) {
+          const [year, month, day] = filterStartDate.split("-").map(Number);
+          const startDate = new Date(year, month - 1, day, 0, 0, 0, 0); // Forzar zona horaria local
+          console.log("startDate", startDate);
+
+          if (maintenanceDate < startDate) {
+            matchDate = false;
+          }
+        }
+
+        if (filterEndDate && matchDate) {
+          const [year, month, day] = filterEndDate.split("-").map(Number);
+          const endDate = new Date(year, month - 1, day, 23, 59, 59, 999); // Forzar zona horaria local
+          console.log("endDate", endDate);
+
+          if (maintenanceDate > endDate) {
+            matchDate = false;
+          }
+        }
+      }
+
       return matchCode && matchTechnician && matchDate && matchStatus;
     });
 
-    return filtered.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    // Ordenamiento
+    const sorted = filtered.sort((a, b) => {
+      if (sortOrder === "asc") {
+        return new Date(a.FEC_INI_MANT) - new Date(b.FEC_INI_MANT);
+      } else {
+        return new Date(b.FEC_INI_MANT) - new Date(a.FEC_INI_MANT);
+      }
+    });
+
+    return sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
   };
 
   const getFilteredCount = () => {
@@ -382,14 +481,39 @@ const ExpandableTable = () => {
       const matchTechnician = (maintenance.NOM_PRO || maintenance.NOM_USU || "")
         .toLowerCase()
         .includes(filterTechnician.toLowerCase());
-      const matchDate =
-        !filterDate || maintenance.FEC_INI_MANT.includes(filterDate);
+
       const matchStatus =
         !filterStatus ||
         maintenance.ESTADO_MANT.toLowerCase() === filterStatus.toLowerCase();
 
+      let matchDate = true;
+
+      if (filterStartDate || filterEndDate) {
+        const maintenanceDate = new Date(maintenance.FEC_INI_MANT);
+        
+        if (filterStartDate) {
+          const [year, month, day] = filterStartDate.split("-").map(Number);
+          const startDate = new Date(year, month - 1, day, 0, 0, 0, 0); // Forzar zona horaria local
+          if (maintenanceDate < startDate) {
+            matchDate = false;
+          }
+        }
+
+        if (filterEndDate && matchDate) {
+          const [year, month, day] = filterEndDate.split("-").map(Number);
+          const endDate = new Date(year, month - 1, day, 23, 59, 59, 999); // Forzar zona horaria local
+          if (maintenanceDate > endDate) {
+            matchDate = false;
+          }
+        }
+      }
+
       return matchCode && matchTechnician && matchDate && matchStatus;
     }).length;
+  };
+
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
   const handleChangePage = (event, newPage) => {
@@ -436,12 +560,29 @@ const ExpandableTable = () => {
 
   const fetchTechnicians = async (type) => {
     try {
-      if (type === "internal") {
-        const users = await mantenimientosServices.getInternalUsers();
-        setInternalUsers(users);
+      // Primero intentamos obtener los datos del localStorage
+      const cachedData = localStorage.getItem(type === "internal" ? "internalUsers" : "externalProviders");
+  
+      if (cachedData) {
+        // Si los datos están en el localStorage, los usamos
+        const parsedData = JSON.parse(cachedData);
+        if (type === "internal") {
+          setInternalUsers(parsedData);
+        } else {
+          setExternalProviders(parsedData);
+        }
       } else {
-        const providers = await mantenimientosServices.getExternalProviders();
-        setExternalProviders(providers);
+        // Si los datos no están en el localStorage, hacemos la llamada a la API
+        let users = [];
+        if (type === "internal") {
+          users = await mantenimientosServices.getInternalUsers();
+          setInternalUsers(users);
+          localStorage.setItem("internalUsers", JSON.stringify(users)); // Guardamos en el localStorage
+        } else {
+          users = await mantenimientosServices.getExternalProviders();
+          setExternalProviders(users);
+          localStorage.setItem("externalProviders", JSON.stringify(users)); // Guardamos en el localStorage
+        }
       }
     } catch (error) {
       console.error(`Error fetching ${type} technicians:`, error);
@@ -527,6 +668,7 @@ const ExpandableTable = () => {
       );
 
       showAlert("Mantenimiento creado exitosamente", "success");
+      localStorage.removeItem("activos");
       await fetchMaintenances();
       handleCloseModal();
     } catch (error) {
@@ -541,15 +683,6 @@ const ExpandableTable = () => {
         showAlert("Error al crear el mantenimiento");
       }
     }
-  };
-
-  const toggleAssetSelection = (assetId) => {
-    setNewMaintenance((prev) => ({
-      ...prev,
-      activos: prev.activos.includes(assetId)
-        ? prev.activos.filter((id) => id !== assetId)
-        : [...prev.activos, assetId],
-    }));
   };
 
   const handleOpenUpdateModal = (maintenance) => {
@@ -575,7 +708,7 @@ const ExpandableTable = () => {
           },
         }}
       >
-        Crear Mantenimiento
+        <i className="bi bi-plus-circle me-2"></i>Crear Mantenimiento
       </Button>
 
       <Paper
@@ -603,15 +736,6 @@ const ExpandableTable = () => {
           sx={{ minWidth: "200px" }}
         />
         <TextField
-          label="Fecha"
-          type="date"
-          size="small"
-          value={filterDate}
-          onChange={(e) => setFilterDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          sx={{ minWidth: "200px" }}
-        />
-        <TextField
           select
           label="Estado"
           size="small"
@@ -623,7 +747,37 @@ const ExpandableTable = () => {
           <MenuItem value="En ejecucion">En ejecucion</MenuItem>
           <MenuItem value="Finalizado">Finalizado</MenuItem>
         </TextField>
-
+        <TextField
+          label="Fecha Inicio"
+          type="date"
+          size="small"
+          value={filterStartDate}
+          onChange={handleStartDateChange}
+          InputLabelProps={{ shrink: true }}
+          inputProps={{ max: filterEndDate }}
+          sx={{ minWidth: "200px" }}
+          error={!!dateError}
+          helperText={dateError}
+        />
+        <TextField
+          label="Fecha Fin"
+          type="date"
+          size="small"
+          value={filterEndDate}
+          onChange={handleEndDateChange}
+          InputLabelProps={{ shrink: true }}
+          inputProps={{ min: filterStartDate }}
+          sx={{ minWidth: "200px" }}
+          error={!!dateError}
+          helperText={dateError}
+        />
+        <IconButton
+          onClick={resetDateFilters}
+          color="primary"
+          sx={{ ml: 1 }}
+        >
+          <RestartAltIcon />
+        </IconButton>
         <Button
           variant="outlined"
           onClick={clearAllFilters}
@@ -712,53 +866,29 @@ const ExpandableTable = () => {
           >
             {technicalType === "internal"
               ? internalUsers.map((user) => (
-                  <MenuItem key={user.ID_USU} value={user.ID_USU}>
-                    {user.NOM_USU}
-                  </MenuItem>
-                ))
+                <MenuItem key={user.ID_USU} value={user.ID_USU}>
+                  {user.NOM_USU}
+                </MenuItem>
+              ))
               : externalProviders.map((provider) => (
-                  <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
-                    {provider.NOM_PRO}
-                  </MenuItem>
-                ))}
+                <MenuItem key={provider.ID_PRO} value={provider.ID_PRO}>
+                  {provider.NOM_PRO}
+                </MenuItem>
+              ))}
           </TextField>
 
-          <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
-            Seleccionar Activos
-          </Typography>
-          <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
-            <Table stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <StyledTableCell>Seleccionar</StyledTableCell>
-                  <StyledTableCell>Código</StyledTableCell>
-                  <StyledTableCell>Nombre</StyledTableCell>
-                  <StyledTableCell>Marca</StyledTableCell>
-                  <StyledTableCell>Categoria</StyledTableCell>
-                  <StyledTableCell>Ubicación</StyledTableCell>
-                  <StyledTableCell>Estado</StyledTableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {assetsList.map((asset) => (
-                  <TableRow key={asset.ID_ACT}>
-                    <TableCell>
-                      <Checkbox
-                        checked={newMaintenance.activos.includes(asset.ID_ACT)}
-                        onChange={() => toggleAssetSelection(asset.ID_ACT)}
-                      />
-                    </TableCell>
-                    <StyledTableCell>{asset.COD_ACT}</StyledTableCell>
-                    <StyledTableCell>{asset.NOM_ACT}</StyledTableCell>
-                    <StyledTableCell>{asset.MAR_ACT}</StyledTableCell>
-                    <StyledTableCell>{asset.CAT_ACT}</StyledTableCell>
-                    <StyledTableCell>{asset.UBI_ACT}</StyledTableCell>
-                    <StyledTableCell>{asset.EST_ACT}</StyledTableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Activos Seleccionados: {newMaintenance.activos.length}
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={() => setActivosModalOpen(true)}
+              sx={{ mt: 1 }}
+            >
+              Agregar Activos
+            </Button>
+          </Box>
         </DialogContent>
         <DialogActions
           sx={{ marginBottom: "20px", marginTop: "20px", marginLeft: "20px" }}
@@ -768,6 +898,19 @@ const ExpandableTable = () => {
             Guardar
           </Button>
         </DialogActions>
+        <ActivosModal
+          open={activosModalOpen}
+          onClose={() => setActivosModalOpen(false)}
+          assetsList={assetsList}
+          selectedAssets={newMaintenance.activos}
+          onAssetsSelected={(selected) => {
+            setNewMaintenance(prev => ({
+              ...prev,
+              activos: selected
+            }));
+            setActivosModalOpen(false);
+          }}
+        />
       </Dialog>
 
       <Paper
@@ -785,7 +928,10 @@ const ExpandableTable = () => {
                 <TableCell />
                 <TableCell>Código</TableCell>
                 <TableCell>Descripción</TableCell>
-                <TableCell>Fecha de Inicio</TableCell>
+                <TableCell onClick={toggleSortOrder} style={{ cursor: "pointer" }}>
+                  Fecha Inicio {sortOrder === "asc" ? "▲" : "▼"}
+                </TableCell>
+                <TableCell >Fecha Fin</TableCell>
                 <TableCell>Técnico</TableCell>
                 <TableCell>Tipo</TableCell>
                 <TableCell>Estado</TableCell>

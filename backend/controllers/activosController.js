@@ -65,62 +65,98 @@ export const editActivo = async (req, res) => {
 };
 
 export const addActivoController = async (req, res) => {
-  const {COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = req.body;
-  try {
-    const result = await addActivo({COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT });
-    console.log(`Activo agregado con ID: ${result.id}`);
+  const { COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = req.body;
 
-    res.status(200).json({ message: 'Activo agregado correctamente', id: result.id });
+  try {
+    // Intentar agregar el activo
+    const result = await addActivo({
+      COD_ACT,
+      NOM_ACT,
+      MAR_ACT: MAR_ACT || 'Desconocido',
+      CAT_ACT,
+      UBI_ACT,
+      EST_ACT,
+      ID_PRO,
+      PC_ACT
+    });
+
+    if (result.success) {
+      res.status(200).json({
+        message: 'Activo agregado correctamente',
+        id: result.id
+      });
+    } else {
+      // Manejar caso de duplicados u otros mensajes
+      if (result.message === "Activo duplicado") {
+        return res.status(409).json({
+          message: `El activo con código ${COD_ACT} ya existe (duplicado).`,
+          detalles: { COD_ACT }
+        });
+      }
+      
+      // Manejar otros errores específicos de la lógica de negocio
+      return res.status(400).json({
+        message: 'No se pudo agregar el activo.',
+        detalles: result.message || 'Error desconocido'
+      });
+    }
   } catch (error) {
     console.error('Error al agregar el activo:', error);
-    res.status(500).json({ message: 'Hubo un error al agregar el activo', error: error.message });
+    res.status(500).json({
+      message: 'Hubo un error al agregar el activo.',
+      error: error.message
+    });
   }
 };
 
 export const addActivosFromExcel = async (req, res) => {
   console.log('Archivo recibido:', req.body);
+
   if (!Array.isArray(req.body) || req.body.length === 0) {
     return res.status(400).json({ message: 'El archivo Excel no contiene datos válidos.' });
   }
-  
+
   const activos = req.body;
   const activosValidos = [];
   const activosInvalidos = [];
+  const duplicados = [];
 
   try {
     for (const activo of activos) {
-      const { 
-        COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT 
-      } = activo;
+      const { COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = activo;
 
       if (COD_ACT && NOM_ACT && CAT_ACT && UBI_ACT && EST_ACT && ID_PRO && PC_ACT) {
-        try {
-          const result = await addActivo({ 
-            COD_ACT,
-            NOM_ACT, 
-            MAR_ACT: MAR_ACT || 'Desconocido',
-            CAT_ACT, 
-            UBI_ACT, 
-            EST_ACT, 
-            ID_PRO,
-            PC_ACT
-          });
-          console.log(`Activo agregado con ID: ${result.insertId}`);
+        const result = await addActivo({
+          COD_ACT,
+          NOM_ACT,
+          MAR_ACT: MAR_ACT || 'Desconocido',
+          CAT_ACT,
+          UBI_ACT,
+          EST_ACT,
+          ID_PRO,
+          PC_ACT
+        });
+
+        if (result.success) {
           activosValidos.push(activo);  // Solo si se agrega correctamente
-        } catch (error) {
-          console.log('Error al agregar el activo:', error.message);
-          activosInvalidos.push(activo);  // Si hay error, agregarlo a los inválidos
+        } else {
+          // Si el resultado es 'Activo duplicado', lo agregamos a la lista de duplicados
+          if (result.message === "Activo duplicado") {
+            duplicados.push(COD_ACT); // Agregamos solo el COD_ACT del duplicado
+          }
+          activosInvalidos.push(activo);  // Marcar como inválido si no se agregó
         }
       } else {
         activosInvalidos.push(activo);  // Si falta algún campo, marcar como inválido
       }
     }
 
-    if (activosValidos.length === 0) {
+    if (activosValidos.length === 0 && activosInvalidos.length > 0) {
       return res.status(400).json({
         message: 'No se pudo agregar ningún activo válido.',
         activosValidos: activosValidos.length,
         activosInvalidos: activosInvalidos.length,
+        duplicados: duplicados,  // Devolvemos los duplicados
         detalles: {
           activosValidos: activosValidos,
           activosInvalidos: activosInvalidos
@@ -128,16 +164,18 @@ export const addActivosFromExcel = async (req, res) => {
       });
     }
 
-    // Responder con la cantidad de activos válidos e inválidos solo si hay activos válidos
+    // Si hay activos válidos, respondemos con éxito
     res.status(200).json({
       message: 'Proceso de carga completado',
       activosValidos: activosValidos.length,
       activosInvalidos: activosInvalidos.length,
+      duplicados: duplicados,  // Incluimos duplicados en la respuesta final
       detalles: {
         activosValidos: activosValidos,
         activosInvalidos: activosInvalidos
       }
     });
+
   } catch (error) {
     console.error('Error al cargar los activos:', error);
     res.status(500).json({ message: 'Hubo un error al cargar los activos', error: error.message });
@@ -158,10 +196,10 @@ export const getActivo = async (req, res) => {
 
 export const updateActivoRelaciones = async (req, res) => {
   const { id } = req.params;
-  const { actividadesSeleccionadas, componentesSeleccionados } = req.body;
+  const { actividadesSeleccionadas, componentesSeleccionados, observacionMantenimiento } = req.body;
 
   try {
-      await updateActivoRelacionesInDB(id, actividadesSeleccionadas, componentesSeleccionados);
+      await updateActivoRelacionesInDB(id, actividadesSeleccionadas, componentesSeleccionados, observacionMantenimiento);
       res.status(200).send('Relaciones actualizadas correctamente');
   } catch (error) {
       console.error("Error al actualizar relaciones del activo:", error);

@@ -29,6 +29,6 @@ router.put("/updateEstadoActivoD/:id", updateEstadoActivoControllerD);
 router.put('/:activoId/finalizarAct', updateEstadoMantenimientoActivoController);
 router.get('/:maintenanceId/assets/:assetId/canRemove', canRemoveAssetFromMaintenanceController);
 router.delete('/:maintenanceId/assets/:assetId', removeAssetFromMaintenanceController);
-router.put('/:maintenanceId', updateMaintenanceController);
+router.put("/update/:id", updateMaintenanceController);
 
 export default router;

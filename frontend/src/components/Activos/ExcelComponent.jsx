@@ -46,22 +46,33 @@ const ExcelComponent = ({ onDataUpload }) => {
     "ID_PRO",
     "PC_ACT",
   ];
+  // Cargar proveedores desde localStorage o desde la API
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [proveedoresRes] = await Promise.all([
-          axios.get("http://localhost:3000/api/proveedores"),
-        ]);
-        setProveedores(proveedoresRes.data);
-        setLoading(false);
-      } catch (err) {
-        setError("Error al cargar los datos.");
-        setLoading(false);
-      }
-    };
-    fetchData();
+    const storedProveedores = localStorage.getItem("proveedores");
+
+    if (storedProveedores) {
+      setProveedores(JSON.parse(storedProveedores));
+      setLoading(false); // No hay necesidad de hacer una solicitud si ya están en el localStorage
+    } else {
+      fetchProveedoresFromAPI();
+    }
   }, []);
+
+  const fetchProveedoresFromAPI = async () => {
+    try {
+      setLoading(true);
+      const proveedoresRes = await axios.get(
+        "http://localhost:3000/api/proveedores"
+      );
+      setProveedores(proveedoresRes.data);
+      localStorage.setItem("proveedores", JSON.stringify(proveedoresRes.data)); // Guardar en localStorage
+      setLoading(false);
+    } catch (err) {
+      setError("Error al cargar los datos.");
+      setLoading(false);
+    }
+  };
+
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     setFile(selectedFile);
@@ -113,11 +124,15 @@ const ExcelComponent = ({ onDataUpload }) => {
       setShowAlert(true);
     }
   };
-
   const handleConfirmUpload = async () => {
-    const activos = excelData.rows.map((row, index) => {
-      // console.log(`Fila ${index}:`, row);
-      return {
+    console.log("Datos del Excel:", excelData);
+
+    const activos = excelData.rows
+      .filter(
+        (row) =>
+          row[0] && row[1] && row[2] && row[3] && row[4] && row[5] && row[6]
+      )
+      .map((row) => ({
         COD_ACT: row[0],
         NOM_ACT: row[1],
         MAR_ACT: row[2],
@@ -126,34 +141,40 @@ const ExcelComponent = ({ onDataUpload }) => {
         EST_ACT: row[5],
         ID_PRO: row[6],
         PC_ACT: formData.PC_ACT,
-      };
-    });
-    // console.log("Datos a enviar:", activos);
+      }));
 
     try {
       const response = await axios.post(
         "http://localhost:3000/api/activos/excel",
         activos
       );
-      console.log("Respuesta de la API:", response.data);
 
-      if (response.data && response.data.message) {
+      if (response.data.duplicados && response.data.duplicados.length > 0) {
+        const duplicadosMensaje = `Existen los siguientes activos duplicados: ${response.data.duplicados.join(
+          ", "
+        )}. No se puede proceder con la carga.`;
+        setAlertMessage(duplicadosMensaje);
+        setAlertSeverity("warning");
+      } else {
         setAlertMessage(response.data.message);
         setAlertSeverity("success");
-        setShowAlert(true);
-        onDataUpload();
-        handleCloseModal();
-      } else {
-        setAlertMessage("Error en la carga de datos");
-        setAlertSeverity("error");
-        setShowAlert(true);
-        onDataUpload();
-        handleCloseModal();
+        localStorage.removeItem("activos");
       }
-    } catch (error) {
-      setAlertMessage("Hubo un error al cargar los activos");
-      setAlertSeverity("error");
       setShowAlert(true);
+
+      setShowModal(false);
+    } catch (error) {
+      const errorMessage = error.response?.data?.duplicados
+        ? `Se encontraron los siguientes activos duplicados: ${error.response.data.duplicados.join(
+            ", "
+          )}.`
+        : "Hubo un error al cargar los activos";
+
+      setAlertMessage(errorMessage);
+      setAlertSeverity(error.response?.data?.duplicados ? "warning" : "error");
+      setShowAlert(true);
+
+      setShowModal(false);
     }
   };
 
@@ -246,10 +267,11 @@ const ExcelComponent = ({ onDataUpload }) => {
   return (
     <div className="d-flex align-items-center">
       <button
-        className="btn btn-primary ms-3 d-flex align-items-center"
+        className="btn ms-3 d-flex align-items-center"
+        style={{ backgroundColor: "#1976d2", color: "white", border: "none" }}
         onClick={() => setShowModal(true)}
       >
-        <i className="bi bi-plus-circle me-2"></i> Agregar Nuevo Activo
+        <i className="bi bi-plus-circle me-2"></i> AGREGAR ACTIVO
       </button>
 
       {showModal && (
@@ -490,8 +512,8 @@ const ExcelComponent = ({ onDataUpload }) => {
                       >
                         <option value="">Seleccione el estado</option>
                         <option value="Disponible">Disponible</option>
-                      <option value="En Mantenimiento">Mantenimiento</option>
-                      <option value="Nuevo">Nuevo</option>
+                        <option value="Defectuoso">Defectuoso</option>
+                        <option value="No Disponible">No Disponible</option>
                       </select>
                     </div>
                     <div className="mb-3">

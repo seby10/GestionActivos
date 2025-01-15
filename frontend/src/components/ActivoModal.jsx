@@ -1,7 +1,18 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import axios from "axios";
-import { Modal, Box, Button, Typography, Alert } from "@mui/material";
+import {
+  Modal,
+  Box,
+  Button,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  TextField,
+} from "@mui/material";
 
 const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
   const [actividades, setActividades] = useState([]);
@@ -9,7 +20,11 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
   const [selectedActividades, setSelectedActividades] = useState([]);
   const [selectedComponentes, setSelectedComponentes] = useState([]);
   const [estadoMantenimiento, setEstadoMantenimiento] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [optionToRemove, setOptionToRemove] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
+  const [currentSelect, setCurrentSelect] = useState(null);
+  const [observacionMantenimiento, setObservacionMantenimiento] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -17,7 +32,6 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
         const { data } = await axios.get(
           `http://localhost:3000/api/activos/getData/${activoId}`
         );
-        console.log(data);
 
         setActividades(
           (data.actividades || []).map((a) => ({
@@ -47,6 +61,8 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
         );
 
         setEstadoMantenimiento(data.estadoMantenimiento);
+
+        setObservacionMantenimiento(data.observacionMantenimiento);
       } catch (error) {
         console.error("Error fetching data:", error);
       }
@@ -54,6 +70,49 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
 
     fetchData();
   }, [activoId]);
+  const handleObservationChange = (event) => {
+    setObservacionMantenimiento(event.target.value);
+  };
+  const handleChange = (selectedOptions, { action, removedValue, name }) => {
+    if (estadoMantenimiento === "Finalizado") {
+      return; // No permitir cambios si el estado es Finalizado
+    }
+
+    if (action === "remove-value" && removedValue) {
+      // Solo manejar la eliminación si es "remove-value"
+      setOptionToRemove(removedValue);
+      setCurrentSelect(name);
+      setOpenDialog(true);
+    } else {
+      // Actualiza las opciones seleccionadas sin eliminar todo
+      if (name === "actividades") {
+        setSelectedActividades(selectedOptions || []);
+      } else if (name === "componentes") {
+        setSelectedComponentes(selectedOptions || []);
+      }
+    }
+  };
+
+  const handleConfirmRemove = () => {
+    if (currentSelect === "actividades") {
+      // Eliminar solo el valor seleccionado
+      setSelectedActividades(
+        selectedActividades.filter((a) => a.value !== optionToRemove.value)
+      );
+    } else if (currentSelect === "componentes") {
+      // Eliminar solo el valor seleccionado
+      setSelectedComponentes(
+        selectedComponentes.filter((c) => c.value !== optionToRemove.value)
+      );
+    }
+    setOpenDialog(false);
+    setOptionToRemove(null);
+  };
+
+  const handleCancelRemove = () => {
+    setOpenDialog(false);
+    setOptionToRemove(null);
+  };
 
   const handleSave = async () => {
     const actividadesSeleccionadas = selectedActividades.map((a) => a.value);
@@ -62,6 +121,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
     await axios.post(`http://localhost:3000/api/activos/update/${activoId}`, {
       actividadesSeleccionadas,
       componentesSeleccionados,
+      observacionMantenimiento,
     });
     closeModal();
     showAlert("Cambios guardados", "success");
@@ -71,7 +131,6 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
     const actividadesSeleccionadas = selectedActividades.map((a) => a.value);
     const componentesSeleccionados = selectedComponentes.map((c) => c.value);
 
-    // Validación: Al menos una actividad o componente debe estar seleccionado
     if (
       actividadesSeleccionadas.length === 0 &&
       componentesSeleccionados.length === 0
@@ -86,6 +145,7 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
       await axios.post(`http://localhost:3000/api/activos/update/${activoId}`, {
         actividadesSeleccionadas,
         componentesSeleccionados,
+        observacionMantenimiento,
       });
 
       await axios.put(
@@ -127,32 +187,25 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
         </h2>
 
         <div>
-          <h3
-            style={{
-              fontSize: "1.2rem",
-              marginBottom: "10px",
-              marginTop: "10px",
-            }}
-          >
+          <h3 style={{ fontSize: "1.2rem", marginBottom: "10px" }}>
             Actividades
           </h3>
           <Select
+            name="actividades"
             isMulti
             options={actividades}
             value={selectedActividades}
-            onChange={setSelectedActividades}
+            onChange={handleChange}
             menuPortalTarget={document.body}
             menuPosition="fixed"
+            isDisabled={estadoMantenimiento === "Finalizado"}
             styles={{
               container: (provided) => ({
                 ...provided,
                 width: "100%",
-                minWidth: "200px",
               }),
               control: (provided) => ({
                 ...provided,
-                width: "100%",
-                minWidth: "200px",
                 borderColor: "#ccc",
               }),
               dropdownIndicator: (provided) => ({
@@ -165,38 +218,36 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
               }),
               menuPortal: (provided) => ({
                 ...provided,
-                zIndex: 1300,
+                zIndex: 1350,
+              }),
+              clearIndicator: (provided) => ({
+                ...provided,
+                display: "none",
               }),
             }}
           />
         </div>
+
         <div>
-          <h3
-            style={{
-              fontSize: "1.2rem",
-              marginBottom: "10px",
-              marginTop: "10px",
-            }}
-          >
+          <h3 style={{ fontSize: "1.2rem", marginBottom: "10px" }}>
             Componentes
           </h3>
           <Select
+            name="componentes"
             isMulti
             options={componentes}
             value={selectedComponentes}
-            onChange={setSelectedComponentes}
+            onChange={handleChange}
             menuPortalTarget={document.body}
             menuPosition="fixed"
+            isDisabled={estadoMantenimiento === "Finalizado"}
             styles={{
               container: (provided) => ({
                 ...provided,
                 width: "100%",
-                minWidth: "200px",
               }),
               control: (provided) => ({
                 ...provided,
-                width: "100%",
-                minWidth: "200px",
                 borderColor: "#ccc",
               }),
               dropdownIndicator: (provided) => ({
@@ -209,7 +260,11 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
               }),
               menuPortal: (provided) => ({
                 ...provided,
-                zIndex: 1300,
+                zIndex: 1350,
+              }),
+              clearIndicator: (provided) => ({
+                ...provided,
+                display: "none",
               }),
             }}
           />
@@ -221,10 +276,61 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
           </Typography>
         )}
 
-        <div
-          style={{ marginTop: 20, display: "flex", justifyContent: "flex-end" }}
+        <Typography variant="h6" gutterBottom>
+          Observaciones
+        </Typography>
+        <TextField
+          label="Escribe tus observaciones"
+          value={observacionMantenimiento}
+          onChange={handleObservationChange}
+          multiline
+          disabled={estadoMantenimiento === "Finalizado"}
+          rows={4}
+          variant="outlined"
+          fullWidth
+          inputProps={{
+            maxLength: 5000,
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "8px",
+            },
+          }}
+        />
+        <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+          {observacionMantenimiento?.length ?? 0} / 5000 caracteres
+        </Typography>
+
+        <Dialog
+          open={openDialog}
+          onClose={handleCancelRemove}
+          aria-labelledby="remove-dialog-title"
+          aria-describedby="remove-dialog-description"
         >
-          {/* Botón de Guardar */}
+          <DialogTitle id="remove-dialog-title">Confirmación</DialogTitle>
+          <DialogContent>
+            <DialogContentText id="remove-dialog-description">
+              ¿Estás seguro de que deseas eliminar la opción{" "}
+              <strong>{optionToRemove?.label}</strong>?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelRemove} color="primary">
+              Cancelar
+            </Button>
+            <Button onClick={handleConfirmRemove} color="secondary" autoFocus>
+              Confirmar
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <div
+          style={{
+            marginTop: 20,
+            display: "flex",
+            justifyContent: "flex-end",
+          }}
+        >
           <Button
             variant="contained"
             color="primary"
@@ -233,8 +339,6 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
           >
             Guardar
           </Button>
-
-          {/* Botón de Finalizar Mantenimiento */}
           <Button
             variant="contained"
             color="secondary"
@@ -248,15 +352,13 @@ const ActivoModal = ({ activoId, closeModal, activoCodigo, showAlert }) => {
           >
             Finalizar Mantenimiento
           </Button>
-
-          {/* Botón de Cancelar */}
           <Button
             variant="outlined"
             color="secondary"
             onClick={closeModal}
             sx={{ ml: 2 }}
           >
-            Cancelar
+            Cerrar
           </Button>
         </div>
       </Box>

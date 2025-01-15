@@ -11,6 +11,7 @@ import {
   updateActivoEstadoD,
   removeAssetFromMaintenance,
   canRemoveAssetFromMaintenance,
+  updateMaintenance,
 } from "../models/mantenimientosModel.js";
 
 export const addMantenimientoController = async (req, res) => {
@@ -226,14 +227,26 @@ export const removeAssetFromMaintenanceController = async (req, res) => {
   }
 };
 
-
 export const updateMaintenanceController = async (req, res) => {
-  const maintenance = req.body;
+  const { id } = req.params; // Obtener el ID de los parámetros de la URL
+  const { DESC_MANT, FEC_INI_MANT, ID_TEC_INT, ID_TEC_EXT } = req.body;
+
+  if (!id) {
+    return res.status(400).json({ message: "ID de mantenimiento no proporcionado" });
+  }
+
   try {
-      const updatedMaintenance = await updateMaintenance(maintenance);
-      res.status(200).json(updatedMaintenance);
+    const result = await updateMaintenance(id, { DESC_MANT, FEC_INI_MANT, ID_TEC_INT, ID_TEC_EXT });
+    console.log("Resultado de la actualización:", result);
+    res.status(200).json({
+      message: "Mantenimiento actualizado correctamente",
+      result
+    });
   } catch (error) {
-      console.error("Error updating maintenance:", error);
-      res.status(500).json({ error: "Error updating maintenance" });
+    console.error("Error al actualizar el mantenimiento:", error);
+    res.status(500).json({
+      message: "Hubo un error al actualizar el mantenimiento",
+      error: error.message
+    });
   }
 };

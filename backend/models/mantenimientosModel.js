@@ -18,16 +18,13 @@ export const addMantenimiento = async (mantenimiento) => {
 
 export const finalizarMantenimiento = async (id) => {
   try {
-    // Comenzar transacción
     await pool.query("START TRANSACTION");
 
-    // Obtener los detalles del mantenimiento
     const [detalles] = await pool.query(
       "SELECT * FROM DETALLES_MANTENIMIENTO WHERE ID_MANT_ASO = ?",
       [id]
     );
 
-    // Actualizar estado de los activos a 'Disponible'
     for (const detalle of detalles) {
       await pool.query(
         "UPDATE ACTIVOS SET EST_ACT = 'Disponible' WHERE ID_ACT = ?",
@@ -69,7 +66,7 @@ export const addDetallesMantenimiento = async (detalle) => {
 export const getActivosByEstado = async () => {
   try {
     const [rows] = await pool.query(
-      "SELECT * FROM ACTIVOS WHERE EST_ACT != 'En Mantenimiento'"
+      "SELECT *, p.NOM_PRO FROM ACTIVOS LEFT JOIN PROVEEDORES p ON ACTIVOS.ID_PRO = p.ID_PRO WHERE EST_ACT != 'En Mantenimiento' AND EST_ACT != 'No Disponible'"
     );
     return rows;
   } catch (error) {
@@ -91,6 +88,7 @@ export const getMantenimientos = async () => {
         PROVEEDORES p ON m.ID_TEC_EXT = p.ID_PRO 
       LEFT JOIN 
         USUARIOS u ON m.ID_TEC_INT = u.ID_USU
+      ORDER BY FEC_INI_MANT DESC;
     `);
     return rows;
   } catch (error) {
@@ -99,13 +97,30 @@ export const getMantenimientos = async () => {
   }
 };
 
-
 export const getDetallesMantenimiento = async (id) => {
   try {
     const [rows] = await pool.query(
-      "SELECT DM.*, A.COD_ACT, A.NOM_ACT, A.MAR_ACT, A.CAT_ACT, A.UBI_ACT, A.EST_ACT FROM DETALLES_MANTENIMIENTO DM JOIN ACTIVOS A ON DM.ID_ACT_MANT = A.ID_ACT WHERE DM.ID_MANT_ASO = ?",
+      `SELECT 
+        DM.*, 
+        A.COD_ACT, 
+        A.NOM_ACT, 
+        A.MAR_ACT, 
+        A.CAT_ACT, 
+        A.UBI_ACT, 
+        A.EST_ACT, 
+        A.ID_PRO, 
+        P.NOM_PRO 
+      FROM 
+        DETALLES_MANTENIMIENTO DM
+      JOIN 
+        ACTIVOS A ON DM.ID_ACT_MANT = A.ID_ACT
+      JOIN 
+        PROVEEDORES P ON A.ID_PRO = P.ID_PRO
+      WHERE 
+        DM.ID_MANT_ASO = ?
+      `,
       [id]
-    );
+    );    
     return rows;
   } catch (error) {
     console.error("Error fetching detalles mantenimiento:", error);
@@ -141,24 +156,27 @@ export const updateActivoEstadoD = async (id) => {
   }
 };
 
-
 export const finalizarMantenimientoActivo = async (activoId) => {
   try {
     const queryMantenimiento = `
       UPDATE DETALLES_MANTENIMIENTO
       SET EST_DET_MANT = 'Finalizado'
-      WHERE id_det_mant = ? AND EST_DET_MANT != 'Finalizado'`; 
+      WHERE id_det_mant = ? AND EST_DET_MANT != 'Finalizado'`;
 
-    const [mantenimientoResult] = await pool.query(queryMantenimiento, [activoId]);
+    const [mantenimientoResult] = await pool.query(queryMantenimiento, [
+      activoId,
+    ]);
 
     if (mantenimientoResult.affectedRows === 0) {
       return mantenimientoResult;
     }
 
-
-    return mantenimientoResult; 
+    return mantenimientoResult;
   } catch (error) {
-    console.error("Error al finalizar mantenimiento y actualizar el estado del activo:", error);
+    console.error(
+      "Error al finalizar mantenimiento y actualizar el estado del activo:",
+      error
+    );
     throw error;
   }
 };
@@ -178,8 +196,13 @@ export const canRemoveAssetFromMaintenance = async (maintenanceId, assetId) => {
         WHERE dm.ID_MANT_ASO = ? AND dm.ID_ACT_MANT = ?
       ) AS canRemove;
   `;
-  
-  const [rows] = await pool.query(query, [maintenanceId, assetId, maintenanceId, assetId]);
+
+  const [rows] = await pool.query(query, [
+    maintenanceId,
+    assetId,
+    maintenanceId,
+    assetId,
+  ]);
   return rows[0].canRemove === 1;
 };
 
@@ -199,6 +222,31 @@ export const getActivosByEstadoD = async () => {
     return rows;
   } catch (error) {
     console.error("Error fetching activos:", error);
+    throw error;
+  }
+};
+
+export const updateMaintenance = async (id, { DESC_MANT, FEC_INI_MANT, ID_TEC_INT, ID_TEC_EXT }) => {
+  try {
+    console.log("Actualizando mantenimiento con los datos:", { DESC_MANT, FEC_INI_MANT, ID_TEC_INT, ID_TEC_EXT, id });
+
+    const query = `
+      UPDATE MANTENIMIENTOS
+      SET DESC_MANT = ?, FEC_INI_MANT = ?, ID_TEC_INT = ?, ID_TEC_EXT = ?
+      WHERE ID_MANT = ?
+    `;
+    const result = await pool.query(query, [DESC_MANT, FEC_INI_MANT, ID_TEC_INT, ID_TEC_EXT, id]);
+
+    console.log("Resultado de la actualización:", result);
+
+    if (result.affectedRows === 0) {
+      console.log("No se actualizó ningún registro. Verifica si el ID es correcto y si los datos son diferentes.");
+    }
+
+    return result;
+
+  } catch (error) {
+    console.error("Error al actualizar el mantenimiento:", error);
     throw error;
   }
 };

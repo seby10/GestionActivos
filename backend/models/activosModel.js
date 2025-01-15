@@ -40,30 +40,33 @@ export const getActivoByIdFromDB = async (id) => {
 };
 
 export const addActivo = async (activo) => {
-  const {
-    COD_ACT,
-    NOM_ACT,
-    MAR_ACT,
-    CAT_ACT,
-    UBI_ACT,
-    EST_ACT,
-    ID_PRO,
-    PC_ACT,
-  } = activo;
-
+  const { COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = activo;
   const marca = MAR_ACT && MAR_ACT.trim() !== "" ? MAR_ACT : "Desconocido";
 
   try {
+    const [existingActivo] = await pool.query(
+      "SELECT * FROM ACTIVOS WHERE COD_ACT = ?",
+      [COD_ACT]
+    );
+
+    if (existingActivo.length > 0) {
+      console.log(`El activo con COD_ACT ${COD_ACT} ya existe.`);
+      return { success: false, message: "Activo duplicado" };
+    }
+
     const [result] = await pool.query(
-      "INSERT INTO ACTIVOS (COD_ACT,NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO ACTIVOS (COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       [COD_ACT, NOM_ACT, marca, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT]
     );
+
     return { success: true, id: result.insertId };
+
   } catch (error) {
     console.error("Error al agregar el activo:", error);
     throw new Error("Error al agregar el activo");
   }
 };
+
 
 export const updateActivo = async (id, activoData) => {
   try {
@@ -110,16 +113,25 @@ LEFT JOIN activo_componente ac ON c.id = ac.componente_id AND ac.id_det_mant = ?
     );
 
     // Obtener estado del mantenimiento
-    const [estadoMantenimiento] = await pool.query(
-      `SELECT EST_DET_MANT FROM DETALLES_MANTENIMIENTO WHERE ID_DET_MANT = ?`,
+    const [informacionMantenimiento] = await pool.query(
+      `SELECT EST_DET_MANT, OBS_DET_MANT FROM DETALLES_MANTENIMIENTO WHERE ID_DET_MANT = ?`,
       [idDetMant]
     );
     const estado =
-      estadoMantenimiento.length > 0
-        ? estadoMantenimiento[0].EST_DET_MANT
+      informacionMantenimiento.length > 0
+        ? informacionMantenimiento[0].EST_DET_MANT
+        : null;
+    const observacion =
+      informacionMantenimiento.length > 0
+        ? informacionMantenimiento[0].OBS_DET_MANT
         : null;
 
-    return { actividades, componentes, estadoMantenimiento: estado };
+    return {
+      actividades,
+      componentes,
+      estadoMantenimiento: estado,
+      observacionMantenimiento: observacion,
+    };
   } catch (error) {
     console.error("Error al obtener datos del activo:", error);
     throw error;
@@ -129,11 +141,16 @@ LEFT JOIN activo_componente ac ON c.id = ac.componente_id AND ac.id_det_mant = ?
 export const updateActivoRelacionesInDB = async (
   id,
   actividadesSeleccionadas,
-  componentesSeleccionados
+  componentesSeleccionados,
+  observacionMantenimiento,
 ) => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
+
+    // Asegúrate de que 'actividadesSeleccionadas' y 'componentesSeleccionados' sean arrays
+    actividadesSeleccionadas = Array.isArray(actividadesSeleccionadas) ? actividadesSeleccionadas : [];
+    componentesSeleccionados = Array.isArray(componentesSeleccionados) ? componentesSeleccionados : [];
 
     // Actualizar actividades
     await connection.query(
@@ -160,6 +177,12 @@ export const updateActivoRelacionesInDB = async (
         [componentesValues]
       );
     }
+
+    // Actualizar la observación
+    await connection.query(
+      `UPDATE DETALLES_MANTENIMIENTO SET OBS_DET_MANT = ? WHERE ID_DET_MANT = ?`,
+      [observacionMantenimiento, id]
+    );
 
     await connection.commit();
   } catch (error) {
