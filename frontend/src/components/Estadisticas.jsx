@@ -131,7 +131,7 @@ const Estadisticas = () => {
         <CardContent>
           <Grid container spacing={3}>
             {/* Actividades más Frecuentes - Gráfico de Pie */}
-            <Grid item xs={12} md={6}>
+            {/* <Grid item xs={12} md={6}>
               <Card elevation={3}>
                 <CardHeader
                   title="Actividades más Frecuentes"
@@ -160,10 +160,10 @@ const Estadisticas = () => {
                   </Box>
                 </CardContent>
               </Card>
-            </Grid>
+            </Grid> */}
 
             {/* Componentes más Usados - Gráfico de Barras */}
-            <Grid item xs={12} md={6}>
+            {/* <Grid item xs={12} md={6}>
               <Card elevation={3}>
                 <CardHeader
                   title="Componentes más Usados"
@@ -186,7 +186,7 @@ const Estadisticas = () => {
                   </Box>
                 </CardContent>
               </Card>
-            </Grid>
+            </Grid> */}
 
             {/* Registros de Mantenimiento Recientes con Paginación */}
             <Grid item xs={12}>
