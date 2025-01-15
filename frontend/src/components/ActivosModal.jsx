@@ -19,8 +19,11 @@ import {
   Box,
   Typography,
   styled,
+  Tooltip,
+  Alert,
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
+
 
 const StyledTableHead = styled(TableHead)(({ theme }) => ({
   backgroundColor: theme.palette.primary.main,
@@ -35,7 +38,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   padding: theme.spacing(2),
 }));
 
-const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelected }) => {
+const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelected, isGestionar }) => {
   const [filters, setFilters] = useState({
     codigo: '',
     ubicacion: '',
@@ -46,9 +49,11 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
   });
 
   const [page, setPage] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
-
   const [localSelectedAssets, setLocalSelectedAssets] = useState(selectedAssets);
+  const [assetsToDelete, setAssetsToDelete] = useState([]);
+  const hasChanges = localSelectedAssets.some(id => !selectedAssets.includes(id)) || assetsToDelete.length > 0;
 
   const getUniqueValues = (field) => {
     return [...new Set(assetsList.map(asset => asset[field]))];
@@ -80,7 +85,6 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
     setPage(0);
   };
 
-  // Limpiar todos los filtros
   const clearAllFilters = () => {
     setFilters({
       codigo: '',
@@ -112,16 +116,50 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
     });
   };
 
-  // Manejar guardado de selección
+  const handleDeleteCheckboxChange = (event, assetId) => {
+    const checked = event.target.checked;
+    const associatedAssets = assetsList.filter(asset => asset.isAssociated);
+    const asset = assetsList.find(a => a.ID_ACT === assetId);
+    
+    if (checked) {
+      setLocalSelectedAssets(prev => prev.filter(id => id !== assetId)); 
+    }
+
+    if (checked) {
+      const updatedAssetsToDelete = [...assetsToDelete, assetId];
+      const remainingAssociatedAssets = associatedAssets.filter(
+        asset => !updatedAssetsToDelete.includes(asset.ID_ACT)
+      );
+      if (remainingAssociatedAssets.length === 0) {
+        setErrorMessage('No puedes eliminar el último activo asociado.');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 3000);
+        return;
+      }
+      setAssetsToDelete(updatedAssetsToDelete);
+    } else {
+      setAssetsToDelete(prev => prev.filter(id => id !== assetId));
+    }
+  };
+  
+
   const handleSave = () => {
-    onAssetsSelected(localSelectedAssets);
+    if (filteredAssets.length === 1 && assetsToDelete.includes(filteredAssets[0].ID_ACT)) {
+      alert('No se puede eliminar el último activo asociado.');
+      return;
+    }
+  
+    onAssetsSelected(localSelectedAssets, assetsToDelete);
     onClose();
   };
+  
 
   const filteredAssets = getFilteredAssets();
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+       {errorMessage && <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>}
       <DialogTitle>
         <Typography>Seleccionar Activos</Typography>
       </DialogTitle>
@@ -216,12 +254,14 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
             Limpiar Filtros
           </Button>
         </Box>
-
         <TableContainer component={Paper}>
           <Table stickyHeader>
             <StyledTableHead>
               <TableRow>
-                <TableCell padding="checkbox">
+              <TableCell padding="checkbox">
+                {isGestionar ? (
+                  <strong>Añadir</strong>
+                ) : (
                   <Checkbox
                     indeterminate={
                       localSelectedAssets.length > 0 &&
@@ -240,7 +280,13 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                       }
                     }}
                   />
-                </TableCell>
+                )}
+              </TableCell>
+                {isGestionar && (
+                  <TableCell padding="checkbox">
+                    <strong>Eliminar</strong>
+                  </TableCell>
+                )}
                 <TableCell>Código</TableCell>
                 <TableCell>Nombre</TableCell>
                 <TableCell>Marca</TableCell>
@@ -260,6 +306,7 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                       handleAssetToggle(asset.ID_ACT);
                     }
                   }}
+                  onClick={!isGestionar ? null : () => handleAssetToggle(asset.ID_ACT)}
                   role="checkbox"
                   aria-checked={localSelectedAssets.includes(asset.ID_ACT)}
                   selected={localSelectedAssets.includes(asset.ID_ACT)}
@@ -269,8 +316,33 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
                       checked={localSelectedAssets.includes(asset.ID_ACT)}
                       onClick={(e) => e.stopPropagation()}
                       onChange={() => handleAssetToggle(asset.ID_ACT)}
+                      disabled={
+                        asset.isAssociated ||
+                        asset.EST_DET_MANT === "Finalizado"
+                      }
                     />
                   </TableCell>
+                  {isGestionar && (
+                    <TableCell padding="checkbox">
+                      <Tooltip
+                        title={
+                          asset.isAssociated && !asset.isDeletable
+                            ? 'No se puede eliminar: Tiene actividades o componentes disponibles.'
+                            : ''
+                        }
+                        arrow
+                      >
+                        <span>
+                          <Checkbox
+                            checked={assetsToDelete.includes(asset.ID_ACT)}
+                            onChange={(e) => handleDeleteCheckboxChange(e, asset.ID_ACT)}
+                            color="primary"
+                            disabled={!asset.isDeletable}
+                          />
+                        </span>
+                      </Tooltip>
+                    </TableCell>
+                  )}
                   <StyledTableCell>{asset.COD_ACT}</StyledTableCell>
                   <StyledTableCell>{asset.NOM_ACT}</StyledTableCell>
                   <StyledTableCell>{asset.MAR_ACT}</StyledTableCell>
@@ -323,8 +395,8 @@ const ActivosModal = ({ open, onClose, assetsList, selectedAssets, onAssetsSelec
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={handleSave}>
-          Agregar Seleccionados
+        <Button variant="contained" onClick={handleSave} disabled={!hasChanges}>
+          {isGestionar ? 'Guardar Cambios' : 'Agregar Seleccionados'}
         </Button>
       </DialogActions>
     </Dialog>

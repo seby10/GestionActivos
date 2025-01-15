@@ -5,7 +5,6 @@ import ActivosTable from './Activos/ActivosTable';
 import MantenimientosTable from './mantenimientosTable';
 import Estadisticas from './Estadisticas';
 import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon, BarChart as EstadisticasIcon } from '@mui/icons-material';
-
 const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [activeComponent, setActiveComponent] = useState('Mantenimientos');

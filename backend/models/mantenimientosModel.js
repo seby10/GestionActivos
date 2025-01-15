@@ -100,9 +100,27 @@ export const getMantenimientos = async () => {
 export const getDetallesMantenimiento = async (id) => {
   try {
     const [rows] = await pool.query(
-      "SELECT DM.*, A.COD_ACT, A.NOM_ACT, A.MAR_ACT, A.CAT_ACT, A.UBI_ACT, A.EST_ACT FROM DETALLES_MANTENIMIENTO DM JOIN ACTIVOS A ON DM.ID_ACT_MANT = A.ID_ACT WHERE DM.ID_MANT_ASO = ?",
+      `SELECT 
+        DM.*, 
+        A.COD_ACT, 
+        A.NOM_ACT, 
+        A.MAR_ACT, 
+        A.CAT_ACT, 
+        A.UBI_ACT, 
+        A.EST_ACT, 
+        A.ID_PRO, 
+        P.NOM_PRO 
+      FROM 
+        DETALLES_MANTENIMIENTO DM
+      JOIN 
+        ACTIVOS A ON DM.ID_ACT_MANT = A.ID_ACT
+      JOIN 
+        PROVEEDORES P ON A.ID_PRO = P.ID_PRO
+      WHERE 
+        DM.ID_MANT_ASO = ?
+      `,
       [id]
-    );
+    );    
     return rows;
   } catch (error) {
     console.error("Error fetching detalles mantenimiento:", error);
@@ -204,6 +222,31 @@ export const getActivosByEstadoD = async () => {
     return rows;
   } catch (error) {
     console.error("Error fetching activos:", error);
+    throw error;
+  }
+};
+
+export const updateMaintenance = async (id, { DESC_MANT, FEC_INI_MANT, ID_TEC_INT, ID_TEC_EXT }) => {
+  try {
+    console.log("Actualizando mantenimiento con los datos:", { DESC_MANT, FEC_INI_MANT, ID_TEC_INT, ID_TEC_EXT, id });
+
+    const query = `
+      UPDATE MANTENIMIENTOS
+      SET DESC_MANT = ?, FEC_INI_MANT = ?, ID_TEC_INT = ?, ID_TEC_EXT = ?
+      WHERE ID_MANT = ?
+    `;
+    const result = await pool.query(query, [DESC_MANT, FEC_INI_MANT, ID_TEC_INT, ID_TEC_EXT, id]);
+
+    console.log("Resultado de la actualización:", result);
+
+    if (result.affectedRows === 0) {
+      console.log("No se actualizó ningún registro. Verifica si el ID es correcto y si los datos son diferentes.");
+    }
+
+    return result;
+
+  } catch (error) {
+    console.error("Error al actualizar el mantenimiento:", error);
     throw error;
   }
 };

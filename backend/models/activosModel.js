@@ -40,30 +40,33 @@ export const getActivoByIdFromDB = async (id) => {
 };
 
 export const addActivo = async (activo) => {
-  const {
-    COD_ACT,
-    NOM_ACT,
-    MAR_ACT,
-    CAT_ACT,
-    UBI_ACT,
-    EST_ACT,
-    ID_PRO,
-    PC_ACT,
-  } = activo;
-
+  const { COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT } = activo;
   const marca = MAR_ACT && MAR_ACT.trim() !== "" ? MAR_ACT : "Desconocido";
 
   try {
+    const [existingActivo] = await pool.query(
+      "SELECT * FROM ACTIVOS WHERE COD_ACT = ?",
+      [COD_ACT]
+    );
+
+    if (existingActivo.length > 0) {
+      console.log(`El activo con COD_ACT ${COD_ACT} ya existe.`);
+      return { success: false, message: "Activo duplicado" };
+    }
+
     const [result] = await pool.query(
-      "INSERT INTO ACTIVOS (COD_ACT,NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO ACTIVOS (COD_ACT, NOM_ACT, MAR_ACT, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       [COD_ACT, NOM_ACT, marca, CAT_ACT, UBI_ACT, EST_ACT, ID_PRO, PC_ACT]
     );
+
     return { success: true, id: result.insertId };
+
   } catch (error) {
     console.error("Error al agregar el activo:", error);
     throw new Error("Error al agregar el activo");
   }
 };
+
 
 export const updateActivo = async (id, activoData) => {
   try {
