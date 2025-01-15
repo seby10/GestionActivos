@@ -167,30 +167,30 @@ const MaintenanceRow = ({
         <StyledTableCell>
           {formatDate(maintenance.FEC_FIN_MANT) || '-'}
         </StyledTableCell>
-        <StyledTableCell>
-          {maintenance.ID_TEC_INT === null
-            ? maintenance.NOM_PRO
-            : maintenance.NOM_USU}
-        </StyledTableCell>
-        <StyledTableCell>
-          <Typography
-            variant="body2"
-            sx={{
-              backgroundColor:
-                maintenance.ID_TEC_INT === null ? "#ff9800" : "#4caf50",
-              color: "white",
-              padding: "4px 8px",
-              borderRadius: "4px",
-              display: "inline-block",
-            }}
-          >
-            {maintenance.ID_TEC_INT === null ? "Externo" : "Interno"}
-          </Typography>
-        </StyledTableCell>
-        <StyledTableCell>
-          <Typography
-            variant="body2"
-            sx={{
+          <StyledTableCell>
+            {maintenance.ID_TEC_INT === null
+              ? maintenance.NOM_PRO
+              : maintenance.NOM_USU}
+          </StyledTableCell>
+          <StyledTableCell>
+            <Typography
+              variant="body2"
+              sx={{
+                backgroundColor:
+                  maintenance.ID_TEC_INT === null ? "#ff9800" : "#4caf50",
+                color: "white",
+                padding: "4px 8px",
+                borderRadius: "4px",
+                display: "inline-block",
+              }}
+            >
+              {maintenance.ID_TEC_INT === null ? "Externo" : "Interno"}
+            </Typography>
+          </StyledTableCell>
+          <StyledTableCell>
+            <Typography
+              variant="body2"
+              sx={{
               backgroundColor:
                 maintenance.ESTADO_MANT === "Finalizado"
                   ? "#4caf50"

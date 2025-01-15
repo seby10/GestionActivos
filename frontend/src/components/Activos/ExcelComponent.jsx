@@ -122,11 +122,12 @@ const ExcelComponent = ({ onDataUpload }) => {
       setShowAlert(true);
     }
   };
-
   const handleConfirmUpload = async () => {
-    const activos = excelData.rows.map((row, index) => {
-      // console.log(`Fila ${index}:`, row);
-      return {
+    console.log("Datos del Excel:", excelData);
+  
+    const activos = excelData.rows
+      .filter(row => row[0] && row[1] && row[2] && row[3] && row[4] && row[5] && row[6]) 
+      .map((row) => ({
         COD_ACT: row[0],
         NOM_ACT: row[1],
         MAR_ACT: row[2],
@@ -135,37 +136,36 @@ const ExcelComponent = ({ onDataUpload }) => {
         EST_ACT: row[5],
         ID_PRO: row[6],
         PC_ACT: formData.PC_ACT,
-      };
-    });
-    // console.log("Datos a enviar:", activos);
-
+      }));
+  
     try {
-      const response = await axios.post(
-        "http://localhost:3000/api/activos/excel",
-        activos
-      );
-      console.log("Respuesta de la API:", response.data);
-
-      if (response.data && response.data.message) {
-        setAlertMessage(response.data.message);
-        setAlertSeverity("success");
-        setShowAlert(true);
-        onDataUpload();
-        handleCloseModal();
+      const response = await axios.post('http://localhost:3000/api/activos/excel', activos);
+      
+      if (response.data.duplicados && response.data.duplicados.length > 0) {
+        const duplicadosMensaje = `Existen los siguientes activos duplicados: ${response.data.duplicados.join(', ')}. No se puede proceder con la carga.`;
+        setAlertMessage(duplicadosMensaje);
+        setAlertSeverity('warning');
       } else {
-        setAlertMessage("Error en la carga de datos");
-        setAlertSeverity("error");
-        setShowAlert(true);
-        onDataUpload();
-        handleCloseModal();
+        setAlertMessage(response.data.message);
+        setAlertSeverity('success');
       }
-    } catch (error) {
-      setAlertMessage("Hubo un error al cargar los activos");
-      setAlertSeverity("error");
       setShowAlert(true);
+      
+      setShowModal(false);
+  
+    } catch (error) {
+      const errorMessage = error.response?.data?.duplicados
+        ? `Se encontraron los siguientes activos duplicados: ${error.response.data.duplicados.join(', ')}.`
+        : "Hubo un error al cargar los activos";
+      
+      setAlertMessage(errorMessage);
+      setAlertSeverity(error.response?.data?.duplicados ? "warning" : "error");
+      setShowAlert(true);
+  
+      setShowModal(false);
     }
   };
-
+  
   const handleCloseModal = () => {
     setFile(null);
     setExcelData([]);

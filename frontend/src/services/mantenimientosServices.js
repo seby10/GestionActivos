@@ -180,15 +180,19 @@ export const mantenimientosServices = {
     }
   },
 
-  updateMaintenance: async (maintenance) => {
+  updateMaintenance: async (maintenanceId, maintenanceData) => {
     try {
-      const response = await axios.put(`${BASE_URL}/mantenimientos/${maintenance.ID_MANT}`, maintenance);
+      const response = await axios.put(
+        `${BASE_URL}/mantenimientos/update/${maintenanceId}`,
+        maintenanceData
+      );
       return response.data;
     } catch (error) {
       console.error("Error updating maintenance:", error);
       throw error;
     }
   },
+
 
   updateAssetStatus: async (assetId, newStatus) => {
     try {

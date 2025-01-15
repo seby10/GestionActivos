@@ -3,8 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import Header from './Header';
 import ActivosTable from './Activos/ActivosTable';
 import MantenimientosTable from './mantenimientosTable';
+<<<<<<< HEAD
 import Estadisticas from './Estadisticas';
 import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon, BarChart as EstadisticasIcon } from '@mui/icons-material';
+=======
+import { WorkOutline as MantenimientosIcon, Memory as ActivosIcon } from '@mui/icons-material';
+import Estadisticas from './Estadisticas';
+>>>>>>> feature/Actualizar
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
